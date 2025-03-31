@@ -13,7 +13,7 @@
 		"issues": "https://github.com/Yorick-06/NecromancersShadow/issues"
 	},
 	"license": "MIT",
-	"icon": "assets/necromancers-shadow/icon.png",
+	"icon": "assets/necromancers-shadow/textures/item/sculk_totem.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
