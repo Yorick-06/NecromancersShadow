@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:totem_of_undying",
+    "minecraft:echo_shard"
+  ],
+  "result": {
+    "count": 1,
+    "id": "necromancers-shadow:sculk_totem"
+  }
+}

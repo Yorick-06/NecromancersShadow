@@ -1,0 +1,26 @@
+{
+	"required": true,
+	"package": "cz.yorick.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"BrainAccessor",
+		"DamageSourcesMixin",
+		"EntityMixin",
+		"LivingAndHostileEntityMixin",
+		"LivingEntityMixin",
+		"MobEntityMixin",
+		"ProjectileEntityMixin",
+		"ServerPlayerEntityMixin",
+		"StatusEffectUtilMixin",
+		"ExperienceOrbEntityMixin",
+		"specific.WardenEntityMixin",
+		"specific.WitchEntityMixin",
+		"specific.WitherEntityMixin",
+		"specific.EnderDragonMixin",
+		"specific.VexEntityMixin",
+		"specific.EvokerFangsEntityMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

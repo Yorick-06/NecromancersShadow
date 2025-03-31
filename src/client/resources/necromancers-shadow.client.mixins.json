@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "cz.yorick.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"EntityRenderDispatcherAccessor",
+		"EntityRenderDispatcherMixin",
+		"RenderLayerMultiPhaseAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

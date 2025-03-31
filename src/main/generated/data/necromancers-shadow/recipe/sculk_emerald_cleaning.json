@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "necromancers-shadow:sculk_emerald"
+  ],
+  "result": {
+    "count": 1,
+    "id": "necromancers-shadow:sculk_emerald"
+  }
+}
