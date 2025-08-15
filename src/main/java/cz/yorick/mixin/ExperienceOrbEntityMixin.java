@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(ExperienceOrbEntity.class)
 public class ExperienceOrbEntityMixin {
     @Unique
-    private static final double XP_MULTIPLIER = 30D;
+    private static final double XP_MULTIPLIER = 25D;
 
     @WrapMethod(method = "repairPlayerGears")
     private int necromancers_shadow$repairPlayerGears(ServerPlayerEntity player, int amount, Operation<Integer> original) {
