@@ -5,6 +5,7 @@ import cz.yorick.data.NecromancerData;
 import cz.yorick.data.SculkEmeraldMode;
 import cz.yorick.data.ShadowData;
 import cz.yorick.item.SculkEmeraldItem;
+import cz.yorick.item.SculkTotemItem;
 import cz.yorick.util.ShadowDamageSource;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -56,16 +57,28 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 				translationBuilder.add(ShadowDamageSource.KILLED_BY_PLAYER_SHADOW, "%d was killed by %d's shadow %d");
 
 				NecromancersShadowClient.generateMultiline(translationBuilder::add, SculkEmeraldItem.HELP_TRANSLATION_KEY, List.of(
+                        "",
 						"§7Right clicking on a soul will insert it into this item instead of your inventory",
 						"§7Left click to swap modes",
 						"§7Mode: §aINPUT",
-						"§7Right click to transfer the first shadow from your inventory to this item",
-						"§7Shift right click to transfer all shadows from your inventory to this item",
-						"§7Right clicking on a spawned shadow will despawn it and insert it into this items inventory",
+						"  §7Right click to transfer the first shadow from your inventory to this item",
+						"  §7Shift right click to transfer all shadows from your inventory to this item",
+						"  §7Right clicking on a spawned shadow will despawn it and insert it into this items inventory",
 						"§7Mode: §aOUTPUT",
-						"§7Right click to transfer the first shadow from this item to your inventory",
-						"§7Shift right click to transfer all shadows from this item to your inventory"
+						"  §7Right click to transfer the first shadow from this item to your inventory",
+						"  §7Shift right click to transfer all shadows from this item to your inventory",
+                        "§7Placing this item into a crafting grid will output an empty sculk emerald",
+                        "§cPERNAMENTLY DELETING §7all shadows inside"
 				));
+
+                NecromancersShadowClient.generateMultiline(translationBuilder::add, SculkTotemItem.HELP_TRANSLATION_KEY, List.of(
+                        "",
+                        "§7Holding this item in your hand will cause the entities you kill to drop their soul,",
+                        "§7it will also convert absorbed xp orbs into soul energy (instead of going to the xp bar/mending)",
+                        "§7Right click to spawn/despawn shadows present in your shadow inventory",
+                        "§7Hitting an entity with this totem makes all spawned shadows target it",
+                        "§7Shift right clicking stops the shadows from attacking"
+                ));
 			}
 		};
 	}
