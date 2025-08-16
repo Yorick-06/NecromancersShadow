@@ -6,6 +6,7 @@ import cz.yorick.data.NecromancyAttachments;
 import cz.yorick.data.ShadowData;
 import cz.yorick.data.MaxSoulEnergyGainConsumeEffect;
 import cz.yorick.item.SculkEmeraldItem;
+import cz.yorick.mixin.EntityAccessor;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
@@ -23,9 +24,10 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.HitResult;
@@ -55,9 +57,9 @@ public class EventHandlers {
 
         //spawn souls on entity death
         if(killed instanceof MobEntity mobEntity && source.getAttacker() instanceof ServerPlayerEntity player && Util.isHoldingTotem(player) && !Util.isShadow(killed)) {
-            ServerWorld world = player.getServerWorld();
-            NbtCompound nbt = new NbtCompound();
-            mobEntity.writeCustomDataToNbt(nbt);
+            ServerWorld world = player.getWorld();
+            WriteView nbt = NbtWriteView.create(NecromancersShadow.ERROR_REPORTER, mobEntity.getRegistryManager());
+            ((EntityAccessor)mobEntity).invokeWriteCustomData(nbt);
             NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE.spawn(world, soulEntity -> soulEntity.setShadow(new ShadowData(mobEntity)), killed.getBlockPos(), SpawnReason.TRIGGERED, false, false);
         }
     }

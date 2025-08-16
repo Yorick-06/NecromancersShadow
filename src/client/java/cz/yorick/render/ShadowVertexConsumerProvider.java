@@ -25,7 +25,7 @@ public record ShadowVertexConsumerProvider(VertexConsumerProvider delegate) impl
     //cached factory (the same as minecraft uses in RenderLayer) which converts non-transparent to transparent layers
     private static final Function<RenderLayer, RenderLayer> TRANSPARENT_CONVERTER = Util.memoize(originalLayer -> {
         if(originalLayer instanceof RenderLayerMultiPhaseAccessor multiPhase) {
-            return RenderLayer.of(originalLayer.getName() + "_translucent_generated", originalLayer.getExpectedBufferSize(), originalLayer.hasCrumbling(), true, new TransparentRenderPipeline(originalLayer.getPipeline()), multiPhase.getPhases());
+            return RenderLayer.of(originalLayer.getName() + "_translucent_generated", originalLayer.getExpectedBufferSize(), originalLayer.hasCrumbling(), true, new TransparentRenderPipeline(multiPhase.getPipeline()), multiPhase.getPhases());
         }
 
         NecromancersShadow.LOGGER.error("Found non-multiphase layer, it will not get rendered as transparent!");
@@ -54,7 +54,8 @@ public record ShadowVertexConsumerProvider(VertexConsumerProvider delegate) impl
                     delegate.getVertexFormat(),
                     delegate.getVertexFormatMode(),
                     delegate.getDepthBiasScaleFactor(),
-                    delegate.getDepthBiasConstant()
+                    delegate.getDepthBiasConstant(),
+                    delegate.getSortKey()
             );
         }
     }

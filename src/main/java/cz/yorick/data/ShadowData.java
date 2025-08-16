@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import cz.yorick.NecromancersShadow;
 import cz.yorick.imixin.IMobEntityMixin;
 import cz.yorick.imixin.IServerPlayerEntityMixin;
+import cz.yorick.mixin.EntityAccessor;
 import cz.yorick.util.Util;
 import net.minecraft.component.ComponentsAccess;
 import net.minecraft.entity.EntityType;
@@ -18,6 +19,8 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.NbtWriteView;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -68,20 +71,20 @@ public class ShadowData implements TooltipAppender {
     }
 
     public void onSpawn(MobEntity vessel, ServerPlayerEntity owner) {
-        vessel.readCustomDataFromNbt(this.nbt.copy());
+        ((EntityAccessor)vessel).invokeReadCustomData(NbtReadView.create(NecromancersShadow.ERROR_REPORTER, vessel.getRegistryManager(), this.nbt.copy()));
         ((IMobEntityMixin)vessel).necromancers_shadow$setShadow(new Instance(this, owner));
         NecromancyAttachments.markAsShadow(vessel, true);
     }
 
     public void updateFrom(MobEntity vessel) {
-        NbtCompound newNbt = new NbtCompound();
-        vessel.writeCustomDataToNbt(newNbt);
+        NbtWriteView newNbt = NbtWriteView.create(NecromancersShadow.ERROR_REPORTER, vessel.getRegistryManager());
+        ((EntityAccessor)vessel).invokeWriteCustomData(newNbt);
         //do not store the health, this way it gets set to the max every time the entity spawns
         newNbt.remove("Health");
 
         this.entityType = vessel.getType();
         this.energyCost = Math.round(vessel.getMaxHealth());
-        this.nbt = newNbt;
+        this.nbt = newNbt.getNbt();
     }
 
     @Override

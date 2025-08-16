@@ -29,6 +29,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ import java.util.function.Supplier;
 public class NecromancersShadow implements ModInitializer {
 	public static final String MOD_ID = "necromancers-shadow";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final ErrorReporter ERROR_REPORTER = new ErrorReporter.Logging(LOGGER);
 	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.##");
 	public static final RegistryKey<EntityType<?>> SOUL_ENTITY_REGISTRY_KEY = RegistryKey.of(RegistryKeys.ENTITY_TYPE, Identifier.of(MOD_ID, "soul"));
 	public static final EntityType<SoulEntity> SOUL_ENTITY_ENTITY_TYPE = Registry.register(Registries.ENTITY_TYPE, SOUL_ENTITY_REGISTRY_KEY,
@@ -73,6 +75,7 @@ public class NecromancersShadow implements ModInitializer {
 		NecromancyAttachments.init();
 		EventHandlers.init();
 		SwapSculkEmeraldModesC2SPacket.init();
+        SoulEntity.registerTrackedData();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> SoulEnergyCommand.init(dispatcher));
 	}
 

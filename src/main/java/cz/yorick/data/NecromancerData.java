@@ -52,10 +52,20 @@ public class NecromancerData {
     private final ConcurrentHashMap<ShadowData, MobEntity> spawnedShadows;
     private boolean spawned = false;
     private NecromancerData(List<ShadowData> storedShadows, Pair<Double, Integer> soulEnergy) {
-        this.storedShadows = new ArrayList<>(storedShadows);
-        this.soulEnergy = soulEnergy.getFirst();
-        this.maxSoulEnergy = soulEnergy.getSecond();
-        this.spawnedShadows = new ConcurrentHashMap<>();
+        this(new ArrayList<>(storedShadows), soulEnergy.getFirst(), soulEnergy.getSecond(), new ConcurrentHashMap<>());
+    }
+
+    private NecromancerData(List<ShadowData> storedShadows, double soulEnergy, int maxSoulEnergy, ConcurrentHashMap<ShadowData, MobEntity> spawnedShadows) {
+        this.storedShadows = storedShadows;
+        this.soulEnergy = soulEnergy;
+        this.maxSoulEnergy = maxSoulEnergy;
+        this.spawnedShadows = spawnedShadows;
+    }
+
+    public NecromancerData copy() {
+        NecromancerData copy = new NecromancerData(this.storedShadows, this.soulEnergy, this.maxSoulEnergy, this.spawnedShadows);
+        copy.spawned = this.spawned;
+        return copy;
     }
 
     private boolean toggleShadowsInternal(ServerPlayerEntity player) {
@@ -78,7 +88,7 @@ public class NecromancerData {
             }
 
             BlockPos spawnPos = player.getBlockPos().add(-2 + player.getRandom().nextInt(5), 1, -2 + player.getRandom().nextInt(5));
-            shadow.getEntityType().spawn(player.getServerWorld(), spawned -> {
+            shadow.getEntityType().spawn(player.getWorld(), spawned -> {
                 if(spawned instanceof MobEntity mobEntity) {
                     shadow.onSpawn(mobEntity, player);
                     this.spawnedShadows.put(shadow, mobEntity);

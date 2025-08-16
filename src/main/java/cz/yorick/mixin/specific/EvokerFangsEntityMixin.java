@@ -4,6 +4,7 @@ import cz.yorick.data.NecromancyAttachments;
 import cz.yorick.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LazyEntityReference;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.EvokerFangsEntity;
 import net.minecraft.world.World;
@@ -21,11 +22,11 @@ public abstract class EvokerFangsEntityMixin extends Entity {
     }
 
     @Shadow
-    private LivingEntity owner;
+    private LazyEntityReference<LivingEntity> owner;
 
     @Inject(method = "setOwner", at = @At("TAIL"))
     public void necromancers_shadow$setOwner(@Nullable LivingEntity owner, CallbackInfo info) {
-        //when changing owner, check if the projectile should be a shadow
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner));
+        //when changing owner, check if the fang should be a shadow
+        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner.resolve(getWorld(), LivingEntity.class)));
     }
 }

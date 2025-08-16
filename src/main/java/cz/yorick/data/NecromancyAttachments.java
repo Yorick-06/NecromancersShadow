@@ -51,9 +51,11 @@ public class NecromancyAttachments {
 
     public static<T> T modifyNecromancerDataWithResult(ServerPlayerEntity player, Function<NecromancerData, T> action) {
         //using get -> set to mark the value as modified and send it to the client
+        //this no longer works since it checks if the objects equal,
+        //instead a new object with the same data gets created to force a sync
         NecromancerData data = player.getAttachedOrCreate(NECROMANCER_DATA);
         T result = action.apply(data);
-        player.setAttached(NECROMANCER_DATA, data);
+        player.setAttached(NECROMANCER_DATA, data.copy());
         return result;
     }
 

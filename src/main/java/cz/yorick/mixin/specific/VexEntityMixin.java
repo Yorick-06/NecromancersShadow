@@ -5,6 +5,7 @@ import cz.yorick.data.ShadowData;
 import cz.yorick.mixin.MobEntityMixin;
 import cz.yorick.util.Util;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LazyEntityReference;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.VexEntity;
@@ -32,10 +33,10 @@ public abstract class VexEntityMixin extends MobEntityMixin {
     }
 
     @Shadow
-    MobEntity owner;
+    private LazyEntityReference<MobEntity> owner;
 
     @Inject(method = "setOwner", at = @At("TAIL"))
     public void setOwner(MobEntity owner, CallbackInfo info) {
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner));
+        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner.resolve(getWorld(), MobEntity.class)));
     }
 }
