@@ -88,7 +88,7 @@ public class NecromancerData {
             }
 
             BlockPos spawnPos = player.getBlockPos().add(-2 + player.getRandom().nextInt(5), 1, -2 + player.getRandom().nextInt(5));
-            shadow.getEntityType().spawn(player.getWorld(), spawned -> {
+            shadow.getEntityType().spawn(player.getEntityWorld(), spawned -> {
                 if(spawned instanceof MobEntity mobEntity) {
                     shadow.onSpawn(mobEntity, player);
                     this.spawnedShadows.put(shadow, mobEntity);

@@ -37,6 +37,6 @@ public abstract class VexEntityMixin extends MobEntityMixin {
 
     @Inject(method = "setOwner", at = @At("TAIL"))
     public void setOwner(MobEntity owner, CallbackInfo info) {
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner.resolve(getWorld(), MobEntity.class)));
+        NecromancyAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.resolve(this.owner, this.getEntityWorld(), MobEntity.class)));
     }
 }

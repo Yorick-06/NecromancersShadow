@@ -122,7 +122,7 @@ public class SoulEntity extends Entity {
             }
         }
 
-        if(getWorld() instanceof ServerWorld serverWorld && this.age % 20 == 0) {
+        if(getEntityWorld() instanceof ServerWorld serverWorld && this.age % 20 == 0) {
             serverWorld.spawnParticles(ParticleTypes.SCULK_SOUL, this.getX(), this.getY() + 0.5, this.getZ(), 1, 0, 0, 0, 0);
         }
     }

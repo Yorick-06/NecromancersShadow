@@ -1,4 +1,4 @@
-package cz.yorick.render;
+package cz.yorick;
 
 import cz.yorick.entity.SoulEntity;
 import net.minecraft.client.render.entity.EntityRenderer;

@@ -36,7 +36,7 @@
 	"accessWidener" : "necromancers-shadow.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.16.10",
-		"minecraft": "~1.21.8",
+		"minecraft": "~1.21.10",
 		"java": ">=21",
 		"fabric-api": "*"
 	},

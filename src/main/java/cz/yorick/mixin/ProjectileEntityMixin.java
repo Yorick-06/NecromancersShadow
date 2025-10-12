@@ -28,7 +28,7 @@ public abstract class ProjectileEntityMixin extends Entity {
     @Inject(method = "setOwner", at = @At("TAIL"))
     private void necromancers_shadow$setOwner(@Nullable LazyEntityReference<Entity> owner, CallbackInfo info) {
         //when changing owner, check if the projectile should be a shadow
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(this.owner.resolve(getWorld(), Entity.class)));
+        NecromancyAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.getEntity(this.owner, this.getEntityWorld())));
     }
 
     //shadow projectile cannot hit a friendly shadow/owner

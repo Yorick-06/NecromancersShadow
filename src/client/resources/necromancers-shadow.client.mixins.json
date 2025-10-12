@@ -3,9 +3,9 @@
 	"package": "cz.yorick.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"EntityRenderDispatcherAccessor",
-		"EntityRenderDispatcherMixin",
-		"RenderLayerMultiPhaseAccessor"
+		"BatchingRenderCommandQueueMixin",
+		"RenderLayerMultiPhaseAccessor",
+		"LivingEntityRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

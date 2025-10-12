@@ -20,12 +20,12 @@ public class ShadowDragonPhase extends AbstractPhase {
     public Vec3d getPathTarget() {
         LivingEntity target = this.dragon.getTarget();
         if(target != null && target.isAlive()) {
-            return target.getPos();
+            return target.getEntityPos();
         }
 
         ShadowData.Instance shadowInstance = Util.getShadowInstance(this.dragon);
         if(shadowInstance != null) {
-            return shadowInstance.owner().getPos().add(0, 5, 0);
+            return shadowInstance.owner().getEntityPos().add(0, 5, 0);
         }
 
         return null;

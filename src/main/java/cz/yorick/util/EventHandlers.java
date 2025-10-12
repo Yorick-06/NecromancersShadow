@@ -57,7 +57,7 @@ public class EventHandlers {
 
         //spawn souls on entity death
         if(killed instanceof MobEntity mobEntity && source.getAttacker() instanceof ServerPlayerEntity player && Util.isHoldingTotem(player) && !Util.isShadow(killed)) {
-            ServerWorld world = player.getWorld();
+            ServerWorld world = player.getEntityWorld();
             WriteView nbt = NbtWriteView.create(NecromancersShadow.ERROR_REPORTER, mobEntity.getRegistryManager());
             ((EntityAccessor)mobEntity).invokeWriteCustomData(nbt);
             NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE.spawn(world, soulEntity -> soulEntity.setShadow(new ShadowData(mobEntity)), killed.getBlockPos(), SpawnReason.TRIGGERED, false, false);

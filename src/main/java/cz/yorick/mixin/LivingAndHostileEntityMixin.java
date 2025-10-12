@@ -8,6 +8,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -27,7 +28,7 @@ public abstract class LivingAndHostileEntityMixin extends Entity {
     }
 
     @WrapMethod(method = "shouldDropLoot")
-    private boolean necromancers_shadow$shouldDropLoot(Operation<Boolean> original) {
-        return !Util.isShadow(this) && original.call();
+    private boolean necromancers_shadow$shouldDropLoot(ServerWorld world, Operation<Boolean> original) {
+        return !Util.isShadow(this) && original.call(world);
     }
 }

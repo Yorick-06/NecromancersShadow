@@ -1,25 +1,48 @@
-package cz.yorick.render;
+package cz.yorick;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import cz.yorick.NecromancersShadow;
+import cz.yorick.data.NecromancyAttachments;
 import cz.yorick.mixin.client.RenderLayerMultiPhaseAccessor;
+import net.fabricmc.fabric.api.client.rendering.v1.FabricRenderState;
+import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.state.LivingEntityRenderState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.ColorHelper;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public record ShadowVertexConsumerProvider(VertexConsumerProvider delegate) implements VertexConsumerProvider {
-    //supplies a shadow vertex consumer (makes the color transparent) and replaces non-transparent layers
-    @Override
-    public VertexConsumer getBuffer(RenderLayer layer) {
-        if(!layer.isTranslucent()) {
-            return new ShadowVertexConsumer(this.delegate.getBuffer(TRANSPARENT_CONVERTER.apply(layer)));
+public class ShadowRenderHelper {
+    public static RenderStateDataKey<Boolean> IS_SHADOW_RENDER_STATE_DATA = RenderStateDataKey.create(() -> "isShadow");
+
+    public static <S> boolean shouldModifyTint(S renderState) {
+        if (renderState instanceof FabricRenderState fabricRenderState) {
+            Boolean isShadow = fabricRenderState.getData(IS_SHADOW_RENDER_STATE_DATA);
+            return isShadow != null && isShadow;
         }
-        return new ShadowVertexConsumer(this.delegate.getBuffer(layer));
+
+        return false;
+    }
+
+    public static int modifyTint(int original) {
+        return ColorHelper.withAlpha(ColorHelper.getAlphaFloat(original)/2F, original);
+    }
+
+    public static RenderLayer ensureTransparentLayer(RenderLayer original) {
+        if(original.isTranslucent()) {
+            return original;
+        }
+
+        return TRANSPARENT_CONVERTER.apply(original);
+    }
+
+    public static void updateRenderState(LivingEntity entity, LivingEntityRenderState state) {
+        if(NecromancyAttachments.isMarkedAsShadow(entity)) {
+            state.setData(IS_SHADOW_RENDER_STATE_DATA, true);
+        }
     }
 
     //cached factory (the same as minecraft uses in RenderLayer) which converts non-transparent to transparent layers
