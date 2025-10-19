@@ -13,9 +13,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.client.data.BlockStateModelGenerator;
-import net.minecraft.client.data.ItemModelGenerator;
-import net.minecraft.client.data.Models;
+import net.minecraft.client.data.*;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.data.recipe.ShapelessRecipeJsonBuilder;
@@ -44,6 +42,9 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 				translationBuilder.add(NecromancersShadow.SCULK_EMERALD, "Sculk Emerald");
 				translationBuilder.add(ShadowData.STORED_SHADOWS_TRANSLATION_KEY, "§7Stored shadows:");
 				translationBuilder.add(NecromancerData.SOUL_ENERGY_TRANSLATION_KEY, "§7Soul energy: ");
+                translationBuilder.add(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY, "Necromancer Inventory");
+                translationBuilder.add(SculkEmeraldItem.INVENTORY_TRANSLATION_KEY, "Sculk Emerald Inventory");
+
 				translationBuilder.add(SculkEmeraldMode.MODE_TRANSLATION_KEY, "§7Mode: ");
 				translationBuilder.add(SculkEmeraldMode.INPUT_TRANSLATION_KEY, "§aINPUT");
 				translationBuilder.add(SculkEmeraldMode.OUTPUT_TRANSLATION_KEY, "§aOUTPUT");
@@ -93,6 +94,7 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 			public void generateItemModels(ItemModelGenerator itemModelGenerator) {
 				itemModelGenerator.register(NecromancersShadow.SCULK_TOTEM, Models.GENERATED);
 				itemModelGenerator.register(NecromancersShadow.SCULK_EMERALD, Models.GENERATED);
+                itemModelGenerator.register(NecromancersShadow.SOUL_ITEM, Models.GENERATED);
 			}
 		};
 	}
@@ -115,11 +117,6 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 								.input(Items.ECHO_SHARD)
 								.criterion(hasItem(Items.ECHO_SHARD), conditionsFromItem(Items.ECHO_SHARD))
 								.offerTo(this.exporter, "sculk_emerald");
-
-						ShapelessRecipeJsonBuilder.create(registryLookup.getOrThrow(RegistryKeys.ITEM), RecipeCategory.MISC, NecromancersShadow.SCULK_EMERALD)
-								.input(NecromancersShadow.SCULK_EMERALD)
-								.criterion(hasItem(NecromancersShadow.SCULK_EMERALD), conditionsFromItem(NecromancersShadow.SCULK_TOTEM))
-								.offerTo(this.exporter, "sculk_emerald_cleaning");
 					}
 				};
 			}

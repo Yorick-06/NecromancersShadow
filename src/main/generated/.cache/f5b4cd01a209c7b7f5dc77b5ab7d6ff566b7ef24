@@ -1,7 +1,5 @@
-// 1.21.5	-999999999-01-01T00:00:00	Necromancer's Shadow/necromancers-shadow recipe generator
+// 1.21.10	-999999999-01-01T00:00:00	Necromancer's Shadow/necromancers-shadow recipe generator
 207925769e4a700519354801ecda4878baa4d836 data/necromancers-shadow/advancement/recipes/combat/sculk_totem.json
-f304009590baa5163d9c8ff409e6539372c6f413 data/necromancers-shadow/advancement/recipes/misc/sculk_emerald.json
-c48603f5b0f33dfab1e6d8f6229dc13de7623fae data/necromancers-shadow/advancement/recipes/misc/sculk_emerald_cleaning.json
+4e01ab048c0a99e8cee655acc36508be61d6a4a9 data/necromancers-shadow/advancement/recipes/misc/sculk_emerald.json
 78a3640bd2a84f6e58188f0520677e7701ca033f data/necromancers-shadow/recipe/sculk_emerald.json
-aa24d25f251b4105428b57df88a91d7491332353 data/necromancers-shadow/recipe/sculk_emerald_cleaning.json
 98b67023ee13c9e116495c602addc04ecbe129a5 data/necromancers-shadow/recipe/sculk_totem.json

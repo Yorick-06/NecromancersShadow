@@ -2,18 +2,22 @@ package cz.yorick;
 
 import com.mojang.serialization.Codec;
 import cz.yorick.command.SoulEnergyCommand;
+import cz.yorick.data.MaxSoulEnergyGainConsumeEffect;
 import cz.yorick.data.NecromancyAttachments;
 import cz.yorick.data.SculkEmeraldMode;
 import cz.yorick.data.ShadowData;
-import cz.yorick.data.MaxSoulEnergyGainConsumeEffect;
 import cz.yorick.entity.SoulEntity;
-import cz.yorick.item.SculkTotemItem;
 import cz.yorick.item.SculkEmeraldItem;
+import cz.yorick.item.SculkTotemItem;
+import cz.yorick.networking.ShadowInventoryInteractC2SPacket;
 import cz.yorick.networking.SwapSculkEmeraldModesC2SPacket;
 import cz.yorick.util.EventHandlers;
 import cz.yorick.util.ShadowDragonPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.item.v1.ComponentTooltipAppenderRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.impl.item.ComponentTooltipAppenderRegistryImpl;
 import net.minecraft.component.ComponentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -28,6 +32,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.text.Text;
 import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Identifier;
@@ -57,11 +62,20 @@ public class NecromancersShadow implements ModInitializer {
 					.build(SOUL_ENTITY_REGISTRY_KEY)
 	);
 
+	public static final RegistryKey<ScreenHandlerType<?>> NECROMANCER_INVENTORY_REGISTRY_KEY = RegistryKey.of(RegistryKeys.SCREEN_HANDLER, Identifier.of(MOD_ID, "necromancer_inventory"));
+	public static final ScreenHandlerType<ShadowInventoryScreenHandler> NECROMANCER_INVENTORY_SCREEN_HANDLER_TYPE = Registry.register(
+			Registries.SCREEN_HANDLER,
+			NECROMANCER_INVENTORY_REGISTRY_KEY,
+            //TODO only send display-relevant data, packet could get very large when having a larger shadow inventory
+			new ExtendedScreenHandlerType<>((ShadowInventoryScreenHandler::new), PacketCodecs.registryCodec(ShadowData.CODEC.listOf()))
+	);
 	public static final ComponentType<List<ShadowData>> SHADOW_DATA_COMPONENT = registerComponent("shadows", ShadowData.CODEC.listOf(), PacketCodecs.registryCodec(ShadowData.SYNC_CODEC.listOf()));
 	public static final ComponentType<SculkEmeraldMode> SCULK_EMERALD_MODE_COMPONENT = registerComponent("sculk_emerald_mode", SculkEmeraldMode.CODEC, PacketCodecs.registryCodec(SculkEmeraldMode.CODEC));
+    public static final ComponentType<ShadowData> SOUL_DATA_COMPONENT = registerComponent("shadow", ShadowData.CODEC, PacketCodecs.registryCodec(ShadowData.CODEC));
 	public static final ConsumeEffect.Type<MaxSoulEnergyGainConsumeEffect> SOUL_ENERGY_GAIN_EFFECT = Registry.register(Registries.CONSUME_EFFECT_TYPE, Identifier.of(MOD_ID, "soul_energy_gain"), MaxSoulEnergyGainConsumeEffect.TYPE);
 	public static final Item SCULK_TOTEM = registerItem("sculk_totem", SculkTotemItem::new);
 	public static final Item SCULK_EMERALD = registerItem("sculk_emerald", SculkEmeraldItem::new);
+    public static final Item SOUL_ITEM = registerItem("soul", Item::new);
 	public static final PhaseType<ShadowDragonPhase> SHADOW_DRAGON_PHASE = PhaseType.register(ShadowDragonPhase.class, "Shadow");
 	public static final String HELP_TRANSLATION_KEY = "tooltip." + MOD_ID + ".help";
 	//since methods checking for tooltip and item bar step do not provide a player (tooltip can be done with a mixin, but
@@ -75,7 +89,9 @@ public class NecromancersShadow implements ModInitializer {
 		NecromancyAttachments.init();
 		EventHandlers.init();
 		SwapSculkEmeraldModesC2SPacket.init();
+        ShadowInventoryInteractC2SPacket.init();
         SoulEntity.registerTrackedData();
+        ComponentTooltipAppenderRegistry.addFirst(SOUL_DATA_COMPONENT);
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> SoulEnergyCommand.init(dispatcher));
 	}
 
@@ -85,6 +101,7 @@ public class NecromancersShadow implements ModInitializer {
 	}
 
 	private static<T> ComponentType<T> registerComponent(String name, Codec<T> codec, PacketCodec<RegistryByteBuf, T> syncCodec) {
+
 		return Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of(MOD_ID, name), ComponentType.<T>builder().codec(codec).packetCodec(syncCodec).build());
 	}
 }

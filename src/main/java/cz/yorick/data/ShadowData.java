@@ -33,16 +33,16 @@ import java.util.function.Consumer;
 
 public class ShadowData implements TooltipAppender {
     public static final String STORED_SHADOWS_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".stored_shadows";
-    private static final MapCodec<ShadowData> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+    private static final MapCodec<ShadowData> NBTLESS_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Registries.ENTITY_TYPE.getCodec().fieldOf("type").forGetter(ShadowData::getEntityType),
             Codecs.NON_NEGATIVE_INT.optionalFieldOf("energyCost").forGetter(data -> Optional.of(data.energyCost))
     ).apply(instance, (type, health) -> new ShadowData(type, health.orElse(Util.getAttribute(type, EntityAttributes.MAX_HEALTH)), new NbtCompound())));
 
-    public static final Codec<ShadowData> SYNC_CODEC = MAP_CODEC.codec();
+    public static final Codec<ShadowData> SYNC_CODEC = NBTLESS_CODEC.codec();
 
     //just adds nbt to the previous codec
     public static final Codec<ShadowData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            MAP_CODEC.forGetter(data -> data),
+            NBTLESS_CODEC.forGetter(data -> data),
             NbtCompound.CODEC.optionalFieldOf("data", new NbtCompound()).forGetter(shadow -> shadow.nbt)
     ).apply(instance, (data, nbt) -> {
         data.nbt = nbt;
@@ -70,12 +70,17 @@ public class ShadowData implements TooltipAppender {
         return this.energyCost;
     }
 
+    public NbtCompound copyNbt() {
+        return this.nbt.copy();
+    }
+
     public void onSpawn(MobEntity vessel, ServerPlayerEntity owner) {
         ((EntityAccessor)vessel).invokeReadCustomData(NbtReadView.create(NecromancersShadow.ERROR_REPORTER, vessel.getRegistryManager(), this.nbt.copy()));
         ((IMobEntityMixin)vessel).necromancers_shadow$setShadow(new Instance(this, owner));
         NecromancyAttachments.markAsShadow(vessel, true);
     }
 
+    //TODO save some extra data (name, components) and dont save some (the thing making the entity red)
     public void updateFrom(MobEntity vessel) {
         NbtWriteView newNbt = NbtWriteView.create(NecromancersShadow.ERROR_REPORTER, vessel.getRegistryManager());
         ((EntityAccessor)vessel).invokeWriteCustomData(newNbt);
@@ -89,12 +94,14 @@ public class ShadowData implements TooltipAppender {
 
     @Override
     public void appendTooltip(Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type, ComponentsAccess components) {
-        textConsumer.accept(
-                MutableText.of(this.entityType.getName().getContent()).formatted(Formatting.GRAY)
-                        .append(Text.literal(": [").formatted(Formatting.GRAY))
-                                .append(Text.literal(String.valueOf(this.energyCost)).formatted(Formatting.AQUA))
-                                        .append(Text.literal("]").formatted(Formatting.GRAY))
-        );
+        textConsumer.accept(asText());
+    }
+
+    public Text asText() {
+        return MutableText.of(this.entityType.getName().getContent()).formatted(Formatting.GRAY)
+                .append(Text.literal(": [").formatted(Formatting.GRAY))
+                .append(Text.literal(String.valueOf(this.energyCost)).formatted(Formatting.AQUA))
+                .append(Text.literal("]").formatted(Formatting.GRAY));
     }
 
     public static ShadowData empty() {

@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 public class SculkEmeraldItem extends Item {
     public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_emerald_help";
+    public static final String INVENTORY_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_emerald_inventory";
     public SculkEmeraldItem(Settings settings) {
         super(settings.maxCount(1).rarity(Rarity.UNCOMMON).component(NecromancersShadow.SHADOW_DATA_COMPONENT, List.of()).component(NecromancersShadow.SCULK_EMERALD_MODE_COMPONENT, new SculkEmeraldMode(true)).fireproof());
     }

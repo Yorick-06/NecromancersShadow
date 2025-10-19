@@ -50,7 +50,6 @@ public class NecromancerData {
     private double soulEnergy;
     private int maxSoulEnergy;
     private final ConcurrentHashMap<ShadowData, MobEntity> spawnedShadows;
-    private boolean spawned = false;
     private NecromancerData(List<ShadowData> storedShadows, Pair<Double, Integer> soulEnergy) {
         this(new ArrayList<>(storedShadows), soulEnergy.getFirst(), soulEnergy.getSecond(), new ConcurrentHashMap<>());
     }
@@ -63,13 +62,19 @@ public class NecromancerData {
     }
 
     public NecromancerData copy() {
-        NecromancerData copy = new NecromancerData(this.storedShadows, this.soulEnergy, this.maxSoulEnergy, this.spawnedShadows);
-        copy.spawned = this.spawned;
-        return copy;
+        return new NecromancerData(this.storedShadows, this.soulEnergy, this.maxSoulEnergy, this.spawnedShadows);
+    }
+
+    private void toggleShadowInternal(ServerPlayerEntity player, ShadowData shadow) {
+        if(!this.spawnedShadows.containsKey(shadow)) {
+            spawnShadow(player, shadow);
+        } else {
+            despawnShadow(player, shadow);
+        }
     }
 
     private boolean toggleShadowsInternal(ServerPlayerEntity player) {
-        if(this.spawned) {
+        if(!this.spawnedShadows.isEmpty()) {
             despawnShadowsInternal(player.isCreative());
             return true;
         } else {
@@ -79,37 +84,39 @@ public class NecromancerData {
 
     private boolean spawnShadowsInternal(ServerPlayerEntity player) {
         for (ShadowData shadow : this.storedShadows) {
-            //creative players can spawn shadows for free
-            if(!player.isCreative()) {
-                if (shadow.getEnergyCost() > this.soulEnergy) {
-                    break;
-                }
-                this.soulEnergy -= shadow.getEnergyCost();
+            if(!spawnShadowInternal(player, shadow)) {
+                break;
             }
-
-            BlockPos spawnPos = player.getBlockPos().add(-2 + player.getRandom().nextInt(5), 1, -2 + player.getRandom().nextInt(5));
-            shadow.getEntityType().spawn(player.getEntityWorld(), spawned -> {
-                if(spawned instanceof MobEntity mobEntity) {
-                    shadow.onSpawn(mobEntity, player);
-                    this.spawnedShadows.put(shadow, mobEntity);
-                }
-            }, spawnPos, SpawnReason.TRIGGERED, false, false);
         }
 
-        if(this.spawnedShadows.isEmpty()) {
-            return false;
+        return !this.spawnedShadows.isEmpty();
+    }
+
+    private boolean spawnShadowInternal(ServerPlayerEntity player, ShadowData shadow) {
+        //creative players can spawn shadows for free
+        if(!player.isCreative()) {
+            if (shadow.getEnergyCost() > this.soulEnergy) {
+                return false;
+            }
+            this.soulEnergy -= shadow.getEnergyCost();
         }
 
-        this.spawned = true;
+        BlockPos spawnPos = player.getBlockPos().add(-2 + player.getRandom().nextInt(5), 1, -2 + player.getRandom().nextInt(5));
+        shadow.getEntityType().spawn(player.getEntityWorld(), spawned -> {
+            if(spawned instanceof MobEntity mobEntity) {
+                shadow.onSpawn(mobEntity, player);
+                this.spawnedShadows.put(shadow, mobEntity);
+            }
+        }, spawnPos, SpawnReason.TRIGGERED, false, false);
         return true;
     }
 
     private void despawnShadowsInternal(boolean infiniteResources) {
-        this.spawnedShadows.forEach((data, entity) -> despawnShadow(infiniteResources, data));
+        this.spawnedShadows.forEach((data, entity) -> despawnShadowInternal(infiniteResources, data));
         this.spawnedShadows.clear();
     }
 
-    private void despawnShadow(boolean infiniteResources, ShadowData data) {
+    private void despawnShadowInternal(boolean infiniteResources, ShadowData data) {
         MobEntity entity = this.spawnedShadows.get(data);
         if(entity == null) {
             return;
@@ -123,14 +130,10 @@ public class NecromancerData {
         data.updateFrom(entity);
         this.spawnedShadows.remove(data);
         entity.remove(Entity.RemovalReason.DISCARDED);
-
-        if(this.spawnedShadows.isEmpty()) {
-            this.spawned = false;
-        }
     }
 
     private void releaseShadow(boolean infiniteResources, ShadowData shadow) {
-        despawnShadow(infiniteResources, shadow);
+        despawnShadowInternal(infiniteResources, shadow);
         this.storedShadows.remove(shadow);
     }
 
@@ -147,8 +150,20 @@ public class NecromancerData {
         this.spawnedShadows.put(shadow, converted);
     }
 
+    public static void toggleShadow(ServerPlayerEntity player, ShadowData shadow) {
+        NecromancyAttachments.modifyNecromancerData(player, data -> data.toggleShadowInternal(player, shadow));
+    }
+
     public static boolean toggleShadows(ServerPlayerEntity player) {
         return NecromancyAttachments.modifyNecromancerDataWithResult(player, data -> data.toggleShadowsInternal(player));
+    }
+
+    public static void spawnShadow(ServerPlayerEntity player, ShadowData shadow) {
+        NecromancyAttachments.getNecromancerData(player).spawnShadowInternal(player, shadow);
+    }
+
+    public static void despawnShadow(ServerPlayerEntity player, ShadowData shadow) {
+        NecromancyAttachments.getNecromancerData(player).despawnShadowInternal(player.isCreative(), shadow);
     }
 
     public static void despawnShadows(ServerPlayerEntity player) {
@@ -165,7 +180,7 @@ public class NecromancerData {
 
     public static void releaseShadow(ServerPlayerEntity player, ShadowData shadow) {
         NecromancyAttachments.modifyNecromancerData(player, data -> {
-            data.despawnShadow(player.isCreative(), shadow);
+            data.despawnShadowInternal(player.isCreative(), shadow);
             data.storedShadows.remove(shadow);
         });
     }
@@ -179,7 +194,7 @@ public class NecromancerData {
             if(data.storedShadows.isEmpty()) {
                 return null;
             }
-            ShadowData firstShadow = data.storedShadows.remove(0);
+            ShadowData firstShadow = data.storedShadows.removeFirst();
             data.releaseShadow(player.isCreative(), firstShadow);
             return firstShadow;
         });
@@ -209,6 +224,9 @@ public class NecromancerData {
         NecromancyAttachments.modifyNecromancerData(player, data -> data.maxSoulEnergy = Math.max(0, amount));
     }
 
+    public static List<ShadowData> getShadows(PlayerEntity player) {
+        return List.copyOf(NecromancyAttachments.getNecromancerData(player).storedShadows);
+    }
 
     public static void appendTotemTooltip(ComponentsAccess components, Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type) {
         NecromancersShadow.LOCAL_PLAYER.get().ifPresent(player -> {
