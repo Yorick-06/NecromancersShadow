@@ -1,8 +1,7 @@
 package cz.yorick;
 
 import cz.yorick.command.SoulEnergyCommand;
-import cz.yorick.data.NecromancerData;
-import cz.yorick.data.SculkEmeraldMode;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
 import cz.yorick.item.SculkEmeraldItem;
 import cz.yorick.item.SculkTotemItem;
@@ -41,18 +40,13 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 				translationBuilder.add(NecromancersShadow.SCULK_TOTEM, "Sculk Totem");
 				translationBuilder.add(NecromancersShadow.SCULK_EMERALD, "Sculk Emerald");
 				translationBuilder.add(ShadowData.STORED_SHADOWS_TRANSLATION_KEY, "§7Stored shadows:");
-				translationBuilder.add(NecromancerData.SOUL_ENERGY_TRANSLATION_KEY, "§7Soul energy: ");
+				translationBuilder.add(DataAttachments.SOUL_ENERGY_TRANSLATION_KEY, "§7Soul energy: ");
                 translationBuilder.add(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY, "Necromancer Inventory");
                 translationBuilder.add(SculkEmeraldItem.INVENTORY_TRANSLATION_KEY, "Sculk Emerald Inventory");
-
-				translationBuilder.add(SculkEmeraldMode.MODE_TRANSLATION_KEY, "§7Mode: ");
-				translationBuilder.add(SculkEmeraldMode.INPUT_TRANSLATION_KEY, "§aINPUT");
-				translationBuilder.add(SculkEmeraldMode.OUTPUT_TRANSLATION_KEY, "§aOUTPUT");
 				translationBuilder.add(NecromancersShadow.HELP_TRANSLATION_KEY, "§7Press shift to show more info");
 				translationBuilder.add(SoulEnergyCommand.MODIFIED_TRANSLATION_KEY, "Modified the data of %d players");
 				translationBuilder.add(SoulEnergyCommand.GET_ENERGY_TRANSLATION_KEY, "%d has %d soul energy");
 				translationBuilder.add(SoulEnergyCommand.GET_MAX_ENERGY_TRANSLATION_KEY, "%d has %d max soul energy");
-				translationBuilder.add(NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE, "Soul");
 				translationBuilder.add(ShadowDamageSource.GENERIC_DEATH, "%d was killed by a shadow");
 				translationBuilder.add(ShadowDamageSource.KILLED_BY_PLAYER, "%1d was killed by %d's shadow");
 				translationBuilder.add(ShadowDamageSource.KILLED_BY_PLAYER_SHADOW, "%d was killed by %d's shadow %d");
@@ -94,7 +88,6 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 			public void generateItemModels(ItemModelGenerator itemModelGenerator) {
 				itemModelGenerator.register(NecromancersShadow.SCULK_TOTEM, Models.GENERATED);
 				itemModelGenerator.register(NecromancersShadow.SCULK_EMERALD, Models.GENERATED);
-                itemModelGenerator.register(NecromancersShadow.SOUL_ITEM, Models.GENERATED);
 			}
 		};
 	}

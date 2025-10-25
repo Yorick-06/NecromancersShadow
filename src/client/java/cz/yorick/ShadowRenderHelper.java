@@ -2,7 +2,7 @@ package cz.yorick;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.mixin.client.RenderLayerMultiPhaseAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.FabricRenderState;
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
@@ -40,7 +40,7 @@ public class ShadowRenderHelper {
     }
 
     public static void updateRenderState(LivingEntity entity, LivingEntityRenderState state) {
-        if(NecromancyAttachments.isMarkedAsShadow(entity)) {
+        if(DataAttachments.isMarkedAsShadow(entity)) {
             state.setData(IS_SHADOW_RENDER_STATE_DATA, true);
         }
     }

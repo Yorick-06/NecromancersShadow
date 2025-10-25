@@ -2,7 +2,7 @@ package cz.yorick.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
@@ -17,6 +17,6 @@ public class EntityMixin {
 
     @WrapMethod(method = "shouldSave")
     private boolean necromancers_shadow$shouldSave(Operation<Boolean> original) {
-        return original.call() && !NecromancyAttachments.isMarkedAsShadow((Entity)(Object)this);
+        return original.call() && !DataAttachments.isMarkedAsShadow((Entity)(Object)this);
     }
 }

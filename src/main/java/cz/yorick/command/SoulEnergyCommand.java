@@ -6,7 +6,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import cz.yorick.NecromancersShadow;
-import cz.yorick.data.NecromancerData;
+import cz.yorick.data.DataAttachments;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -84,8 +84,8 @@ public class SoulEnergyCommand {
     }
 
     private enum Type {
-        AMOUNT(NecromancerData::getEnergy, NecromancerData::setEnergy),
-        MAX(player -> (double)NecromancerData.getMaxEnergy(player), (player, amount) -> NecromancerData.setMaxEnergy(player, (int)Math.round(amount)));
+        AMOUNT(DataAttachments::getSoulEnergy, DataAttachments::setSoulEnergy),
+        MAX(player -> (double)DataAttachments.getMaxSoulEnergy(player), (player, amount) -> DataAttachments.setMaxSoulEnergy(player, (int)Math.round(amount)));
         private final Function<ServerPlayerEntity, Double> getter;
         private final BiConsumer<ServerPlayerEntity, Double> setter;
         Type(Function<ServerPlayerEntity, Double> getter, BiConsumer<ServerPlayerEntity, Double> setter) {

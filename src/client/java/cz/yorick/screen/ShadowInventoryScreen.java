@@ -1,28 +1,24 @@
 package cz.yorick.screen;
 
-import cz.yorick.NecromancersShadow;
-import cz.yorick.ShadowInventoryScreenHandler;
 import cz.yorick.data.ShadowData;
+import cz.yorick.networking.ShadowStorageSwapC2SPacket;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.gui.widget.GridWidget;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-
-import java.util.List;
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public class ShadowInventoryScreen extends HandledScreen<ShadowInventoryScreenHandler> {
     private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/generic_54.png");
-    private static final int ROW_ENTITIES = 3;
-    private final PlayerEntity player;
+    private final ShadowStorageTooltipRenderer tooltipRenderer = new ShadowStorageTooltipRenderer();
+    private final ShadowStorageWidget storageWidget;
     public ShadowInventoryScreen(ShadowInventoryScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-        this.player = inventory.player;
+        this.storageWidget = new ShadowStorageWidget(this.getScreenHandler().getShadowManager());
         this.backgroundHeight = 114 + 6 * 18;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
     }
@@ -30,71 +26,112 @@ public class ShadowInventoryScreen extends HandledScreen<ShadowInventoryScreenHa
     @Override
     protected void init() {
         super.init();
-        this.titleX = (this.backgroundWidth - this.textRenderer.getWidth(this.title)) / 2;
-        //refreshGridWidget();
-        int index = 0;
-        Slot slot = getScreenHandler().getShadowInventorySlot(index);
-        while (slot != null) {
-            if(slot.getStack() == null || slot.getStack().isEmpty()) {
-                continue;
-            }
-
-            ShadowData data = slot.getStack().get(NecromancersShadow.SOUL_DATA_COMPONENT);
-            if(data == null) {
-                continue;
-            }
-
-            ShadowDataDisplayWidget widget = new ShadowDataDisplayWidget(data, this.player.getEntityWorld(), 54, 54, () -> {});
-            this.addDrawableChild(widget);
-            widget.setX(slot.x - 18);
-            widget.setY(slot.y - 36);
-
-            index++;
-            slot = getScreenHandler().getShadowInventorySlot(index);
-        }
+        this.storageWidget.position(this.backgroundWidth - 16, 6 * 18, this.x + 8, this.y + 18);
+        this.addDrawableChild(this.storageWidget);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        super.render(context, mouseX, mouseY, deltaTicks);
-        this.drawMouseoverTooltip(context, mouseX, mouseY);
-    }
-
-    @Override
-    protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {/*
-        int i = (this.width - this.backgroundWidth) / 2;
-        int j = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);*/
+    protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
         context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, 6 * 18 + 17, 256, 256);
         context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j + 6 * 18 + 17, 0.0F, 126.0F, this.backgroundWidth, 96, 256, 256);
     }
 
-    private void refreshGridWidget() {
-        GridWidget gridWidget = new GridWidget();
-        List<ShadowData> shadows = this.getScreenHandler().getShadowData();
-
-        for (int y = 0; y * ROW_ENTITIES < shadows.size(); y++) {
-            for (int x = 0; x < ROW_ENTITIES && (y * ROW_ENTITIES + x) < shadows.size(); x++) {
-                int index = y * ROW_ENTITIES + x;
-                ShadowDataWidget widget = new ShadowDataWidget(y * ROW_ENTITIES + x, shadows.get(index), this.player.getEntityWorld(), 54, 54);
-                gridWidget.add(widget, y, x);
-                this.addDrawableChild(widget);
-            }
+    private SoulSlotWidget pickedUp = null;
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        super.render(context, mouseX, mouseY, deltaTicks);
+        if(this.pickedUp != null) {
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
+            context.drawTooltip(this.pickedUp.getMessage(), mouseX, mouseY);
+            return;
         }
 
-        gridWidget.setX(this.x + 8 - 1);
-        gridWidget.setY(this.y + 18 - 1);
-        gridWidget.refreshPositions();
+        hoveredElement(mouseX, mouseY).ifPresent(hoveredMain -> {
+            if(hoveredMain instanceof ShadowStorageWidget storageWidget) {
+                storageWidget.hoveredElement(mouseX, mouseY).ifPresent(hoveredEntry -> {
+                    if(hoveredEntry instanceof ShadowStorageWidget.Entry entry) {
+                        entry.hoveredElement(mouseX, mouseY).ifPresent(hoveredElement -> {
+                            if(hoveredElement instanceof SoulSlotWidget dataWidget && dataWidget.getShadowData() != null) {
+                                context.drawTooltip(dataWidget.getMessage(), mouseX, mouseY);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        /*
+        hoveredElement(mouseX, mouseY).ifPresent(hovered -> {
+            if(hovered instanceof ShadowStorageWidget shadowStorageWidget) {
+                ShadowStorageWidget.Entry focusedRow = shadowStorageWidget.getFocused();
+                //nothing is focused but something was focused
+                if(focusedRow == null) {
+                    if(this.previousFocusedWidget != null) {
+                        this.tooltipRenderer.onFocusChanged(null);
+                        this.previousFocusedWidget = null;
+                    }
+                    return;
+                }
+
+                //only ShadowDataWidget elements are present, should never fail
+                ShadowDataWidget focusedWidget = (ShadowDataWidget)focusedRow.getFocused();
+                if(focusedWidget != this.previousFocusedWidget) {
+                    this.tooltipRenderer.onFocusChanged(focusedWidget);
+                    this.previousFocusedWidget = focusedWidget;
+                }
+            }
+        });*/
+
+        //this.tooltipRenderer.render(context, this.x, this.y  + 8 * 18, deltaTicks);
+    }
+
+    @Override
+    public void setFocused(@Nullable Element focused) {
+        super.setFocused(focused);
+        if(!(focused instanceof ShadowStorageWidget shadowStorageWidget)) {
+            //this.tooltipRenderer.onFocusChanged(null);
+            return;
+        }
+
+        if(shadowStorageWidget.getFocused() instanceof ShadowStorageWidget.Entry entry && entry.getFocused() instanceof SoulSlotWidget cliked) {
+            //not holding anything, try to pick up the target
+            if(this.pickedUp == null) {
+                if(!cliked.isEmpty()) {
+                    cliked.setPickedUp(true);
+                    this.pickedUp = cliked;
+                }
+                return;
+            }
+
+            //clicking again into the slot, put down the target
+            if(this.pickedUp == cliked) {
+                this.pickedUp.setPickedUp(false);
+                this.pickedUp = null;
+                return;
+            }
+
+            //clicking into another slot while holding something - execute a swap
+            this.pickedUp.setPickedUp(false);
+            ShadowData clickedShadowData = cliked.getShadowData();
+            cliked.setShadowData(this.pickedUp.getShadowData());
+            this.pickedUp.setShadowData(clickedShadowData);
+            ClientPlayNetworking.send(new ShadowStorageSwapC2SPacket(this.pickedUp.getId(), cliked.getId()));
+
+            //only pick up the new slot if it is not empty
+            if(!cliked.isEmpty()) {
+                cliked.setPickedUp(true);
+                this.pickedUp = cliked;
+            } else {
+                this.pickedUp = null;
+            }
+        }
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if(!super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) {
-            return this.hoveredElement(mouseX, mouseY).filter(hovered -> hovered.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)).isPresent();
-        }
-
-        return false;
+        return hoveredElement(mouseX, mouseY)
+                .map(element -> element.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount))
+                .orElseGet(() -> super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount));
     }
 }

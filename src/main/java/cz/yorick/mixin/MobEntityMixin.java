@@ -2,7 +2,7 @@ package cz.yorick.mixin;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
 import cz.yorick.imixin.IMobEntityMixin;
 import net.minecraft.entity.EntityType;
@@ -124,7 +124,7 @@ public abstract class MobEntityMixin extends LivingEntity implements IMobEntityM
 		if(this.shadowInstance != null) {
 			cir.setReturnValue(this.shadowInstance.getTarget());
 			//if this entity is an ownable, check the owner
-		} else if(NecromancyAttachments.isMarkedAsShadow(this) && this instanceof Ownable ownable && ownable.getOwner() instanceof MobEntity mobEntity) {
+		} else if(DataAttachments.isMarkedAsShadow(this) && this instanceof Ownable ownable && ownable.getOwner() instanceof MobEntity mobEntity) {
 			cir.setReturnValue(mobEntity.getTarget());
 		}
 	}

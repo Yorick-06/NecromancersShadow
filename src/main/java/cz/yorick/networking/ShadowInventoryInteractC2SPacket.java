@@ -1,7 +1,7 @@
 package cz.yorick.networking;
 
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import cz.yorick.ShadowInventoryScreenHandler;
+import cz.yorick.screen.ShadowInventoryScreenHandler;
 import cz.yorick.NecromancersShadow;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;

@@ -1,6 +1,6 @@
 package cz.yorick.mixin.specific;
 
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -27,6 +27,6 @@ public abstract class EvokerFangsEntityMixin extends Entity {
     @Inject(method = "setOwner", at = @At("TAIL"))
     public void necromancers_shadow$setOwner(@Nullable LivingEntity owner, CallbackInfo info) {
         //when changing owner, check if the fang should be a shadow
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.getLivingEntity(this.owner, this.getEntityWorld())));
+        DataAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.getLivingEntity(this.owner, this.getEntityWorld())));
     }
 }

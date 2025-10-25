@@ -21,7 +21,7 @@ public record MaxSoulEnergyGainConsumeEffect(int soulEnergy) implements ConsumeE
     @Override
     public boolean onConsume(World world, ItemStack stack, LivingEntity user) {
         if(user instanceof ServerPlayerEntity player) {
-            NecromancerData.setMaxEnergy(player, NecromancerData.getMaxEnergy(player) + this.soulEnergy);
+            DataAttachments.setMaxSoulEnergy(player, DataAttachments.getMaxSoulEnergy(player) + this.soulEnergy);
             return true;
         }
         return false;

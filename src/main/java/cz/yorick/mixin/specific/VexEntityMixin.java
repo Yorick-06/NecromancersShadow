@@ -1,6 +1,6 @@
 package cz.yorick.mixin.specific;
 
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
 import cz.yorick.mixin.MobEntityMixin;
 import cz.yorick.util.Util;
@@ -37,6 +37,6 @@ public abstract class VexEntityMixin extends MobEntityMixin {
 
     @Inject(method = "setOwner", at = @At("TAIL"))
     public void setOwner(MobEntity owner, CallbackInfo info) {
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.resolve(this.owner, this.getEntityWorld(), MobEntity.class)));
+        DataAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.resolve(this.owner, this.getEntityWorld(), MobEntity.class)));
     }
 }

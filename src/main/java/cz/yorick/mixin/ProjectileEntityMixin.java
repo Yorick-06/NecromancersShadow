@@ -2,7 +2,7 @@ package cz.yorick.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import cz.yorick.data.NecromancyAttachments;
+import cz.yorick.data.DataAttachments;
 import cz.yorick.util.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -28,7 +28,7 @@ public abstract class ProjectileEntityMixin extends Entity {
     @Inject(method = "setOwner", at = @At("TAIL"))
     private void necromancers_shadow$setOwner(@Nullable LazyEntityReference<Entity> owner, CallbackInfo info) {
         //when changing owner, check if the projectile should be a shadow
-        NecromancyAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.getEntity(this.owner, this.getEntityWorld())));
+        DataAttachments.markAsShadow(this, Util.isShadow(LazyEntityReference.getEntity(this.owner, this.getEntityWorld())));
     }
 
     //shadow projectile cannot hit a friendly shadow/owner

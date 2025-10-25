@@ -1,9 +1,10 @@
 package cz.yorick.item;
 
 import cz.yorick.NecromancersShadow;
-import cz.yorick.ShadowInventoryScreenHandler;
-import cz.yorick.data.NecromancerData;
-import cz.yorick.data.ShadowData;
+import cz.yorick.data.DataAttachments;
+import cz.yorick.data.ServerShadowManager;
+import cz.yorick.data.ShadowStorage;
+import cz.yorick.screen.ShadowInventoryScreenHandler;
 import cz.yorick.imixin.IServerPlayerEntityMixin;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -25,11 +26,10 @@ import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 //TODO add a way to ride the entities?
-public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory<List<ShadowData>> {
+public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory<ShadowStorage> {
     public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_totem_help";
     public static final String NECROMANCER_INVENTORY_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".necromancer_inventory";
     public SculkTotemItem(Settings settings) {
@@ -42,7 +42,7 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
             if(user.isSneaking()) {
                 ((IServerPlayerEntityMixin)user).necromancers_shadow$setTarget(null);
                 return ActionResult.SUCCESS_SERVER;
-            } else if(NecromancerData.toggleShadows(player)) {
+            } else if(ServerShadowManager.toggleShadows(player)) {
                 player.getItemCooldownManager().set(user.getStackInHand(hand), 60);
                 return ActionResult.SUCCESS_SERVER;
             }
@@ -60,7 +60,7 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
-        NecromancerData.appendTotemTooltip(stack, context, textConsumer, type);
+        DataAttachments.appendEnergyTooltip(stack, context, textConsumer, type);
         if(NecromancersShadow.HAS_SHIFT_DOWN.get()) {
             NecromancersShadow.MULTILINE_TOOLTIP_DECODER.accept(HELP_TRANSLATION_KEY, textConsumer);
         } else {
@@ -85,7 +85,7 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
 
     @Override
     public int getItemBarStep(ItemStack stack) {
-        return NecromancerData.getItemBarStep();
+        return DataAttachments.getSoulEnergyItemBarStep();
     }
 
     @Override
@@ -101,11 +101,15 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new ShadowInventoryScreenHandler(syncId, playerInventory, NecromancerData.getShadows(player));
+        if(player instanceof ServerPlayerEntity serverPlayer) {
+            return new ShadowInventoryScreenHandler(syncId, playerInventory, DataAttachments.getShadowManager(serverPlayer));
+        }
+
+        throw new UnsupportedOperationException("SculkTotemItem.createMenu() called with a PlayerEntity instead of a ServerPlayerEntity, should never happen!");
     }
 
     @Override
-    public List<ShadowData> getScreenOpeningData(ServerPlayerEntity player) {
-        return NecromancerData.getShadows(player);
+    public ShadowStorage getScreenOpeningData(ServerPlayerEntity player) {
+        return DataAttachments.getShadowStorage(player);
     }
 }
