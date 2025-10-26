@@ -2,9 +2,12 @@ package cz.yorick;
 
 import cz.yorick.command.SoulEnergyCommand;
 import cz.yorick.data.DataAttachments;
-import cz.yorick.data.ShadowData;
+import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.item.SculkEmeraldItem;
 import cz.yorick.item.SculkTotemItem;
+import cz.yorick.screen.SculkEmeraldScreen;
+import cz.yorick.screen.widget.ShadowPreviewWidget;
+import cz.yorick.screen.widget.ToggleSummonWidget;
 import cz.yorick.util.ShadowDamageSource;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -37,43 +40,64 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 		return new FabricLanguageProvider(output, registryFuture) {
 			@Override
 			public void generateTranslations(RegistryWrapper.WrapperLookup registryLookup, TranslationBuilder translationBuilder) {
-				translationBuilder.add(NecromancersShadow.SCULK_TOTEM, "Sculk Totem");
-				translationBuilder.add(NecromancersShadow.SCULK_EMERALD, "Sculk Emerald");
-				translationBuilder.add(ShadowData.STORED_SHADOWS_TRANSLATION_KEY, "§7Stored shadows:");
-				translationBuilder.add(DataAttachments.SOUL_ENERGY_TRANSLATION_KEY, "§7Soul energy: ");
-                translationBuilder.add(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY, "Necromancer Inventory");
-                translationBuilder.add(SculkEmeraldItem.INVENTORY_TRANSLATION_KEY, "Sculk Emerald Inventory");
-				translationBuilder.add(NecromancersShadow.HELP_TRANSLATION_KEY, "§7Press shift to show more info");
+
+                //commands
 				translationBuilder.add(SoulEnergyCommand.MODIFIED_TRANSLATION_KEY, "Modified the data of %d players");
 				translationBuilder.add(SoulEnergyCommand.GET_ENERGY_TRANSLATION_KEY, "%d has %d soul energy");
 				translationBuilder.add(SoulEnergyCommand.GET_MAX_ENERGY_TRANSLATION_KEY, "%d has %d max soul energy");
+                //death messages
 				translationBuilder.add(ShadowDamageSource.GENERIC_DEATH, "%d was killed by a shadow");
 				translationBuilder.add(ShadowDamageSource.KILLED_BY_PLAYER, "%1d was killed by %d's shadow");
 				translationBuilder.add(ShadowDamageSource.KILLED_BY_PLAYER_SHADOW, "%d was killed by %d's shadow %d");
+                //entity
+                translationBuilder.add(NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE, "Soul");
 
+                //items
+                translationBuilder.add(NecromancersShadow.SCULK_EMERALD, "Sculk Emerald");
+                translationBuilder.add(SculkEmeraldScreen.TITLE_TRANSLATION_KEY, "Sculk Emerald Inventory");
 				NecromancersShadowClient.generateMultiline(translationBuilder::add, SculkEmeraldItem.HELP_TRANSLATION_KEY, List.of(
                         "",
 						"§7Right clicking on a soul will insert it into this item instead of your inventory",
-						"§7Left click to swap modes",
-						"§7Mode: §aINPUT",
-						"  §7Right click to transfer the first shadow from your inventory to this item",
-						"  §7Shift right click to transfer all shadows from your inventory to this item",
-						"  §7Right clicking on a spawned shadow will despawn it and insert it into this items inventory",
-						"§7Mode: §aOUTPUT",
-						"  §7Right click to transfer the first shadow from this item to your inventory",
-						"  §7Shift right click to transfer all shadows from this item to your inventory",
-                        "§7Placing this item into a crafting grid will output an empty sculk emerald",
-                        "§cPERNAMENTLY DELETING §7all shadows inside"
+						"§7Right click to open the ui"
 				));
 
-                NecromancersShadowClient.generateMultiline(translationBuilder::add, SculkTotemItem.HELP_TRANSLATION_KEY, List.of(
+                //sculk totem
+                translationBuilder.add(NecromancersShadow.SCULK_TOTEM, "Sculk Totem");
+                translationBuilder.add(SculkTotemItem.HELP_TRANSLATION_KEY, "§7Press shift to show more info");
+                NecromancersShadowClient.generateMultiline(translationBuilder::add, SculkTotemItem.HELP_CONTENT_TRANSLATION_KEY, List.of(
                         "",
                         "§7Holding this item in your hand will cause the entities you kill to drop their soul,",
                         "§7it will also convert absorbed xp orbs into soul energy (instead of going to the xp bar/mending)",
                         "§7Right click to spawn/despawn shadows present in your shadow inventory",
                         "§7Hitting an entity with this totem makes all spawned shadows target it",
-                        "§7Shift right clicking stops the shadows from attacking"
+                        "§7Shift right clicking stops the shadows from attacking",
+                        "§7Right clicking on the item inside your inventory opens your necromancer inventory"
                 ));
+
+                translationBuilder.add(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY, "Necromancer Inventory");
+                translationBuilder.add(ToggleSummonWidget.TOGGLE_SUMMON_TRANSLATION_KEY, "Click to summon/unsummon this shadow");
+
+
+                //preview
+                NecromancersShadowClient.generateMultiline(translationBuilder::add, ShadowPreviewWidget.HELP_TRANSLATION_KEY, List.of(
+                        "Trash can ->",
+                        "Clicking on souls:",
+                        "Left -> pick up",
+                        "Right -> preview",
+                        "Preview:",
+                        "Left -> rotate",
+                        "Wheel -> zoom"
+                ));
+
+                translationBuilder.add(ShadowPreviewWidget.TYPE_TRANSLATION_KEY, "Type: ");
+                translationBuilder.add(ShadowPreviewWidget.SUMMON_COST_TRANSLATION_KEY, "Summon cost: ");
+                translationBuilder.add(ShadowPreviewWidget.HEALTH_TRANSLATION_KEY, "Health: ");
+                translationBuilder.add(ShadowPreviewWidget.DAMAGE_TRANSLATION_KEY, "Damage: ");
+
+                //data
+                translationBuilder.add(DataAttachments.SOUL_ENERGY_TRANSLATION_KEY, "§7Soul energy: ");
+                translationBuilder.add(ImmutableShadowStorage.STORED_SHADOWS_TRANSLATION_KEY, "Stored shadows:");
+
 			}
 		};
 	}

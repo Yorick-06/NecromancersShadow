@@ -27,12 +27,12 @@ public class DataAttachments {
                     .syncWith(PacketCodecs.BOOLEAN, AttachmentSyncPredicate.all())
     );
 
-    private static final AttachmentType<ShadowStorage> SHADOW_STORAGE = AttachmentRegistry.create(Identifier.of(NecromancersShadow.MOD_ID, "shadow_storage"),
+    private static final AttachmentType<ImmutableShadowStorage> SHADOW_STORAGE = AttachmentRegistry.create(Identifier.of(NecromancersShadow.MOD_ID, "shadow_storage"),
             builder -> builder
                     .copyOnDeath()
-                    .initializer(ShadowStorage::empty)
-                    .persistent(ShadowStorage.CODEC)
-                    .syncWith(PacketCodecs.registryCodec(ShadowStorage.SYNC_CODEC), AttachmentSyncPredicate.targetOnly())
+                    .initializer(ImmutableShadowStorage::empty)
+                    .persistent(ImmutableShadowStorage.CODEC)
+                    .syncWith(PacketCodecs.registryCodec(ImmutableShadowStorage.SYNC_CODEC), AttachmentSyncPredicate.targetOnly())
     );
 
     private static final AttachmentType<ServerShadowManager> SHADOW_MANAGER = AttachmentRegistry.create(Identifier.of(NecromancersShadow.MOD_ID, "shadow_manager"));
@@ -65,8 +65,14 @@ public class DataAttachments {
         }
     }
 
-    public static ShadowStorage getShadowStorage(PlayerEntity player) {
+    public static ImmutableShadowStorage getShadowStorage(PlayerEntity player) {
         return player.getAttachedOrCreate(SHADOW_STORAGE);
+    }
+
+    public static void mutateShadowStorage(ServerPlayerEntity player, Consumer<MutableShadowStorage> mutator) {
+        MutableShadowStorage mutable = getShadowStorage(player).toMutable();
+        mutator.accept(mutable);
+        player.setAttached(SHADOW_STORAGE, mutable.toImmutable());
     }
 
     public static ServerShadowManager getShadowManager(ServerPlayerEntity player) {
@@ -105,9 +111,9 @@ public class DataAttachments {
         }).orElse(0);
     }
 
-    public static void appendEnergyTooltip(ComponentsAccess components, Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type) {
+    public static void appendEnergyTooltip(Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type, ComponentsAccess components) {
         NecromancersShadow.LOCAL_PLAYER.get().ifPresent(player -> {
-            textConsumer.accept(Text.translatable(SOUL_ENERGY_TRANSLATION_KEY)
+            textConsumer.accept(Text.translatable(SOUL_ENERGY_TRANSLATION_KEY).formatted(Formatting.GRAY)
                     .append(Text.literal(NecromancersShadow.DECIMAL_FORMAT.format(getSoulEnergy(player))).formatted(Formatting.AQUA))
                     .append(Text.literal("/").formatted(Formatting.GRAY))
                     .append(Text.literal(String.valueOf(getMaxSoulEnergy(player))).formatted(Formatting.AQUA))

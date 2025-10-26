@@ -28,22 +28,14 @@ despawning the shadows.
 - Right click to spawn/despawn shadows present in your shadow inventory
 - Hitting an entity with this totem makes all spawned shadows target it
 - Shift right clicking stops the shadows from attacking
+- Right clicking on the item in your inventory opens the necromancer inventory ui, where you can view, move, and individually summon/unsummon your shadows
 - If you forget something, pressing shift while hovering the item will show a description of its features 
 
 ## Sculk Emerald
 - Can be crafted from an emerald and an echo shard
 - Is fireproof
-- Right clicking a soul with this item adds it to the items inventory instead of your own
-- Has two modes which can be switched by left clicking while holding the item
-- INPUT
-  - Right clicking a spawned shadow will despawn it and transfer it from your to the items inventory
-  - Right clicking normally will transfer the first shadow from your inventory to this item
-  - Shift right clicking will transfer all shadows from your inventory to this item
-- OUTPUT
-  - Right clicking will transfer the first shadow from this item to your inventory
-  - Shift right clicking will transfer all shadows from this item to your inventory 
-- Can be cleared by using a crafting table (place it anywhere in the crafting grid and the result will be an empty sculk emerald) 
-- If you forget something, pressing shift while hovering the item will show a description of its features
+- Right-clicking a soul with this item adds it to the items inventory instead of your own
+- Right-clicking opens the emeralds inventory, where you can store some shadows
 
 ## /soulEnergy
 A simple command which allows the manipulation of both soul energy and max soul energy, requires op

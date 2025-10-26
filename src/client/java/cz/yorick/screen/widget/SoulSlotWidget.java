@@ -1,4 +1,4 @@
-package cz.yorick.screen;
+package cz.yorick.screen.widget;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.ShadowData;
@@ -10,7 +10,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class SoulSlotWidget extends ClickableWidget {
-    public static final Identifier SOUL_TEXTURE = Identifier.of(NecromancersShadow.MOD_ID, "textures/item/soul.png");
+    public static final Identifier BACKGROUND_TEXTURE = Identifier.of(NecromancersShadow.MOD_ID, "textures/gui/soul_slot.png");
+    public static final Identifier SOUL_TEXTURE = Identifier.of(NecromancersShadow.MOD_ID, "textures/gui/soul.png");
     private static final Identifier SELECTED_TEXTURE = Identifier.ofVanilla("textures/gui/sprites/hud/hotbar_selection.png");
     private ShadowData shadowData;
     private final int id;
@@ -22,7 +23,7 @@ public class SoulSlotWidget extends ClickableWidget {
 
     public void setShadowData(ShadowData shadowData) {
         this.shadowData = shadowData;
-        this.setMessage(this.shadowData != null ? this.shadowData.asText() : Text.empty());
+        this.setMessage(this.shadowData == null ? Text.empty() : this.shadowData.asText());
     }
 
     public int getId() {
@@ -39,13 +40,14 @@ public class SoulSlotWidget extends ClickableWidget {
 
     @Override
     protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, this.getX(), this.getY(), 0, 0, 18, 18, 18, 18);
         if(this.shadowData != null && !this.pickedUp) {
             context.drawTexture(RenderPipelines.GUI_TEXTURED, SOUL_TEXTURE, this.getX() + 1, this.getY() + 1, 0, 0, 16, 16, 16, 16);
-            //this.renderer.render(context, getX() + 1, getY() + 1, deltaTicks);
-        }/*
-        if(isFocused()) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, SELECTED_TEXTURE, this.getX() - 3, this.getY() - 3, 0, 0, 24, 23, 24, 23);
-        }*/
+        }
+
+        if(isHovered()) {
+            context.fill(getX() + 1, getY() + 1, getX() + 17, getY() + 17, -2130706433);
+        }
     }
 
     public void setPickedUp(boolean pickedUp) {

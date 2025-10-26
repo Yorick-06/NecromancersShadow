@@ -2,9 +2,9 @@ package cz.yorick.item;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.DataAttachments;
+import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.data.ServerShadowManager;
-import cz.yorick.data.ShadowStorage;
-import cz.yorick.screen.ShadowInventoryScreenHandler;
+import cz.yorick.screen.NecromancerInventoryScreenHandler;
 import cz.yorick.imixin.IServerPlayerEntityMixin;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.component.type.TooltipDisplayComponent;
@@ -29,9 +29,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 //TODO add a way to ride the entities?
-public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory<ShadowStorage> {
-    public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_totem_help";
-    public static final String NECROMANCER_INVENTORY_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".necromancer_inventory";
+public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory<ImmutableShadowStorage> {
+    public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".help";
+    public static final String HELP_CONTENT_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_totem_help";
+    public static final String NECROMANCER_INVENTORY_TRANSLATION_KEY = "title." + NecromancersShadow.MOD_ID + ".necromancer_inventory";
     public SculkTotemItem(Settings settings) {
         super(settings.maxCount(1).rarity(Rarity.RARE).fireproof());
     }
@@ -60,18 +61,26 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplayComponent displayComponent, Consumer<Text> textConsumer, TooltipType type) {
-        DataAttachments.appendEnergyTooltip(stack, context, textConsumer, type);
-        if(NecromancersShadow.HAS_SHIFT_DOWN.get()) {
-            NecromancersShadow.MULTILINE_TOOLTIP_DECODER.accept(HELP_TRANSLATION_KEY, textConsumer);
-        } else {
-            textConsumer.accept(Text.translatable(NecromancersShadow.HELP_TRANSLATION_KEY));
-        }
+        NecromancersShadow.SCULK_TOTEM_TOOLTIP_APPENDER.appendTooltip(context, textConsumer, type, stack);
     }
 
     @Override
     public boolean onClicked(ItemStack stack, ItemStack otherStack, Slot slot, ClickType clickType, PlayerEntity player, StackReference cursorStackReference) {
-        if(clickType == ClickType.RIGHT) {
-            player.openHandledScreen(this);
+        //opening the menu here using player.openHandledScreen() causes two issues
+        //- this method is only ran on the client when in creative, causing the menu to only work in survival
+        //- opening a menu from this method causes the inventory to desync for some reason
+        if(clickType == ClickType.RIGHT && !(player instanceof ServerPlayerEntity)) {
+            //creative menu has weird indexing, server also ignores checks when in creative
+            if(player.isCreative()) {
+                NecromancersShadow.NECROMANCER_INVENTORY_OPENER.accept(0);
+                return true;
+            }
+
+            player.currentScreenHandler.getSlotIndex(slot.inventory, slot.getIndex()).ifPresentOrElse(
+                    id -> NecromancersShadow.NECROMANCER_INVENTORY_OPENER.accept(id),
+                    () -> NecromancersShadow.LOGGER.warn("OnClicked somehow called with an invalid slot, should never happen")
+            );
+
             return true;
         }
 
@@ -102,14 +111,14 @@ public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         if(player instanceof ServerPlayerEntity serverPlayer) {
-            return new ShadowInventoryScreenHandler(syncId, playerInventory, DataAttachments.getShadowManager(serverPlayer));
+            return new NecromancerInventoryScreenHandler(syncId, playerInventory, DataAttachments.getShadowManager(serverPlayer));
         }
 
         throw new UnsupportedOperationException("SculkTotemItem.createMenu() called with a PlayerEntity instead of a ServerPlayerEntity, should never happen!");
     }
 
     @Override
-    public ShadowStorage getScreenOpeningData(ServerPlayerEntity player) {
+    public ImmutableShadowStorage getScreenOpeningData(ServerPlayerEntity player) {
         return DataAttachments.getShadowStorage(player);
     }
 }

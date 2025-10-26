@@ -13,7 +13,6 @@
 		"ServerPlayerEntityMixin",
 		"StatusEffectUtilMixin",
 		"ExperienceOrbEntityMixin",
-        "EntityAccessor",
 		"specific.WardenEntityMixin",
 		"specific.WitchEntityMixin",
 		"specific.WitherEntityMixin",

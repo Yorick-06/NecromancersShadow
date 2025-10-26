@@ -1,39 +1,50 @@
-package cz.yorick.screen;
+package cz.yorick.screen.widget;
 
-import cz.yorick.data.ShadowStorage;
+import cz.yorick.data.ShadowAccess;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 //IMPORTANT use setPosition(width, height, x, y) to trigger recalculation of elements - the method is private
-public class ShadowStorageWidget extends ElementListWidget<ShadowStorageWidget.Entry> {
-    private static final int ROW_SIZE = 9;
-    private final ShadowStorage storage;
-    public ShadowStorageWidget(ShadowStorage storage) {
+public class ShadowAccessWidget extends ElementListWidget<ShadowAccessWidget.Entry> {
+    private static final int ROW_SIZE = 8;
+    private final BiConsumer<Click, SoulSlotWidget> clickedCallback;
+    public ShadowAccessWidget(ShadowAccess access, BiConsumer<Click, SoulSlotWidget> clickedCallback) {
         //width, height and y is set in the screen, item height is 18
         super(MinecraftClient.getInstance(), 0, 0, 0, 18);
-        this.storage = storage;
-        refreshEntries();
+        this.clickedCallback = clickedCallback;
+        refreshEntries(access);
     }
 
-    public void refreshEntries() {
+    public SoulSlotWidget getWidgetFor(int slot) {
+        int row = slot/ROW_SIZE;
+        int rowIndex = slot - (row * ROW_SIZE);
+        return this.children().get(row).children().get(rowIndex);
+    }
+
+    public void refreshEntries(ShadowAccess access) {
         this.clearEntries();
         //leave at least one slot extra
-        int rows = (this.storage.lasSlot()/ROW_SIZE) + 1;
+        int rows = ((access.lastOccupiedSlot() + 1)/ROW_SIZE) + 1;
         for (int rowIndex = 0; rowIndex < rows; rowIndex++) {
             Entry entry = new Entry();
             for (int elementIndex = 0; elementIndex < ROW_SIZE; elementIndex++) {
                 int id = (rowIndex * ROW_SIZE) + elementIndex;
                 SoulSlotWidget widget = new SoulSlotWidget(id);
-                widget.setShadowData(this.storage.getShadow(id));
+                widget.setShadowData(access.getShadow(id));
                 entry.slots.add(widget);
             }
             this.addEntry(entry);
         }
+
+        //scroll might be out of bounds
+        refreshScroll();
     }
 
     //row width is 220 by default, spent like an hour figuring out why everything is rendering weird
@@ -42,27 +53,18 @@ public class ShadowStorageWidget extends ElementListWidget<ShadowStorageWidget.E
         return ROW_SIZE * 18;
     }
 
-    /*
-    //removes the weird 4 pixel gap at the top, this wisdom is recycled from one of my previous projects
     @Override
-    public int getRowTop(int index) {
-        return super.getRowTop(index) - 4;
-    }*/
-
-    //first entry adds 2, we remove 2 (method is private)
-    @Override
-    public int getYOfNextEntry() {
-        return super.getYOfNextEntry() + 20;
+    protected void drawScrollbar(DrawContext context, int mouseX, int mouseY) {
+        super.drawScrollbar(context, mouseX, mouseY);
     }
 
-    /*
-    //remove the padding
+    //-4 removes padding, extra -1 offsets it in combination with the hack in the entry
     @Override
     protected int getContentsHeightWithPadding() {
-        return super.getContentsHeightWithPadding() - 4;
-    }*/
+        return super.getContentsHeightWithPadding() - 5;
+    }
 
-    public static class Entry extends ElementListWidget.Entry<Entry> {
+    public class Entry extends ElementListWidget.Entry<Entry> {
         private final List<SoulSlotWidget> slots = new ArrayList<>();
 
         @Override
@@ -95,8 +97,21 @@ public class ShadowStorageWidget extends ElementListWidget<ShadowStorageWidget.E
 
         @Override
         public void setY(int y) {
-            super.setY(y);
-            this.slots.forEach(widget -> widget.setY(y));
+            //a weird hack since otherwise there is a weird gap at the top, i tried everything and have no idea how to fix it :(
+            int actualY = y - 3;
+            super.setY(actualY);
+            this.slots.forEach(widget -> widget.setY(actualY));
+        }
+
+        @Override
+        public boolean mouseClicked(Click click, boolean doubled) {
+            for (SoulSlotWidget child : children()) {
+                if(child.isMouseOver(click.x(), click.y())) {
+                    ShadowAccessWidget.this.clickedCallback.accept(click, child);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

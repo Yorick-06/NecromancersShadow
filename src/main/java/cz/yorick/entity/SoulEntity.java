@@ -2,8 +2,9 @@ package cz.yorick.entity;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.DataAttachments;
+import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.data.ShadowData;
-import cz.yorick.data.ShadowStorage;
+import cz.yorick.data.MutableShadowStorage;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -82,12 +83,13 @@ public class SoulEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if(player instanceof ServerPlayerEntity serverPlayerEntity) {
             ItemStack heldStack = player.getStackInHand(hand);
-            ShadowStorage itemStorage = heldStack.get(NecromancersShadow.SHADOW_DATA_COMPONENT);
+            ImmutableShadowStorage itemStorage = heldStack.get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
             if(itemStorage != null) {
-                itemStorage.addShadow(this.dataTracker.get(SHADOW));
-                heldStack.set(NecromancersShadow.SHADOW_DATA_COMPONENT, itemStorage);
+                MutableShadowStorage mutableStorage = itemStorage.toMutable();
+                mutableStorage.addShadow(this.dataTracker.get(SHADOW));
+                heldStack.set(NecromancersShadow.SHADOW_STORAGE_COMPONENT, mutableStorage.toImmutable());
             } else {
-                DataAttachments.getShadowStorage(player).addShadow(this.dataTracker.get(SHADOW));
+                DataAttachments.mutateShadowStorage(serverPlayerEntity, mutableStorage -> mutableStorage.addShadow(this.dataTracker.get(SHADOW)));
             }
 
             this.remove(RemovalReason.KILLED);

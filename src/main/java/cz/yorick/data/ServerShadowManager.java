@@ -8,7 +8,10 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
-public class ServerShadowManager implements ShadowManager {
+import java.util.Map;
+import java.util.function.Consumer;
+
+public class ServerShadowManager implements MutableShadowAccess {
     private final ServerPlayerEntity owner;
     private final Int2ObjectMap<MobEntity> spawned = new Int2ObjectArrayMap<>();
 
@@ -31,8 +34,8 @@ public class ServerShadowManager implements ShadowManager {
 
     private boolean trySpawnShadows() {
         int spawned = 0;
-        for (Int2ObjectMap.Entry<ShadowData> shadowDataEntry : this.storage()) {
-            if(trySpawnShadow(shadowDataEntry.getIntKey(), shadowDataEntry.getValue())) {
+        for (Map.Entry<Integer, ShadowData> shadowDataEntry : DataAttachments.getShadowStorage(this.owner)) {
+            if(trySpawnShadow(shadowDataEntry.getKey(), shadowDataEntry.getValue())) {
                 spawned++;
             }
         }
@@ -69,13 +72,15 @@ public class ServerShadowManager implements ShadowManager {
             return;
         }
 
-        //use toIntArray to receive a copy, this prevents concurrent modification
-        for (int slot : this.spawned.keySet().toIntArray()) {
-            tryDespawnShadow(slot);
-        }
+        mutateStorage(mutableStorage -> {
+            //use toIntArray to receive a copy, this prevents concurrent modification
+            for (int slot : this.spawned.keySet().toIntArray()) {
+                tryDespawnShadow(mutableStorage, slot);
+            }
+        });
     }
 
-    private void tryDespawnShadow(int slot) {
+    private void tryDespawnShadow(MutableShadowStorage mutableStorage, int slot) {
         MobEntity spawnedEntity = this.spawned.get(slot);
         //not spawned -> do nothing
         if(spawnedEntity == null) {
@@ -92,11 +97,11 @@ public class ServerShadowManager implements ShadowManager {
 
         spawnedEntity.remove(Entity.RemovalReason.DISCARDED);
         this.spawned.remove(slot);
-        this.storage().setShadow(slot, data);
+        mutableStorage.setShadow(slot, data);
     }
 
-    private ShadowStorage storage() {
-        return DataAttachments.getShadowStorage(this.owner);
+    private void mutateStorage(Consumer<MutableShadowStorage> mutator) {
+        DataAttachments.mutateShadowStorage(this.owner, mutator);
     }
 
     public void convertShadow(MobEntity oldEntity, MobEntity newEntity) {
@@ -120,10 +125,16 @@ public class ServerShadowManager implements ShadowManager {
         return -1;
     }
 
+    //override to handle swapping spawned references and
+    //bypass shadows despawning from set()
     @Override
     public void swapShadows(int from, int to) {
-        //swap data
-        ShadowManager.super.swapShadows(from, to);
+        //swap data - bypass local despawn from set
+        mutateStorage(mutableStorage -> {
+            ShadowData toShadowData = mutableStorage.getShadow(to);
+            mutableStorage.setShadow(to, mutableStorage.getShadow(from));
+            mutableStorage.setShadow(from, toShadowData);
+        });
 
         //swap references for the spawned entities - handle nulls manually
         MobEntity fromEntity = this.spawned.remove(from);
@@ -137,19 +148,49 @@ public class ServerShadowManager implements ShadowManager {
         }
     }
 
-    public static boolean toggleShadows(ServerPlayerEntity player) {
-        return DataAttachments.getShadowManager(player).toggleShadowsInternal();
+    private ImmutableShadowStorage storage() {
+        return DataAttachments.getShadowStorage(this.owner);
     }
 
     @Override
     public ShadowData getShadow(int slot) {
-        return this.storage().getShadow(slot);
+        return storage().getShadow(slot);
     }
 
     @Override
     public void setShadow(int slot, ShadowData shadowData) {
-        //try to despawn the current shadow in the slot
-        tryDespawnShadow(slot);
-        this.storage().setShadow(slot, shadowData);
+        mutateStorage(mutableStorage -> {
+            //try to despawn the current shadow in the slot
+            tryDespawnShadow(mutableStorage, slot);
+            mutableStorage.setShadow(slot, shadowData);
+        });
+    }
+
+    @Override
+    public int lastOccupiedSlot() {
+        return storage().lastOccupiedSlot();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return storage().isEmpty();
+    }
+
+    public void toggleShadow(int slot) {
+        if(this.spawned.containsKey(slot)) {
+            mutateStorage(mutableStorage -> tryDespawnShadow(mutableStorage, slot));
+            return;
+        }
+
+        ShadowData shadow = DataAttachments.getShadowStorage(this.owner).getShadow(slot);
+        if(shadow == null) {
+            return;
+        }
+
+        trySpawnShadow(slot, shadow);
+    }
+
+    public static boolean toggleShadows(ServerPlayerEntity player) {
+        return DataAttachments.getShadowManager(player).toggleShadowsInternal();
     }
 }
