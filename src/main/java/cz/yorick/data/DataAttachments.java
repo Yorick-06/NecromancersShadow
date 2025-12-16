@@ -84,11 +84,11 @@ public class DataAttachments {
     }
 
     public static void setSoulEnergy(ServerPlayerEntity player, double amount) {
-        player.setAttached(SOUL_ENERGY, amount);
+        player.setAttached(SOUL_ENERGY, Math.min(amount, getMaxSoulEnergy(player)));
     }
 
     public static void addSoulEnergy(ServerPlayerEntity player, double amount) {
-        player.modifyAttached(SOUL_ENERGY, originalAmount -> originalAmount + amount);
+        setSoulEnergy(player, getSoulEnergy(player) + amount);
     }
 
     public static void removeSoulEnergy(ServerPlayerEntity player, double amount) {
@@ -100,6 +100,11 @@ public class DataAttachments {
     }
 
     public static void setMaxSoulEnergy(ServerPlayerEntity player, int amount) {
+        double currentEnergy = getMaxSoulEnergy(player);
+        if(amount < currentEnergy) {
+            setSoulEnergy(player, amount);
+        }
+
         player.setAttached(MAX_SOUL_ENERGY, amount);
     }
 

@@ -18,14 +18,14 @@ public class ExperienceOrbEntityMixin {
     private int necromancers_shadow$repairPlayerGears(ServerPlayerEntity player, int amount, Operation<Integer> original) {
         //if the player is holding a totem in either hand
         if(Util.isHoldingTotem(player)) {
-            double soulEnergy = DataAttachments.getSoulEnergy(player);
-            double maxSoulEnergy = DataAttachments.getMaxSoulEnergy(player);
+            double energySpace = DataAttachments.getMaxSoulEnergy(player) - DataAttachments.getSoulEnergy(player);
+            if(energySpace > 0) {
+                double toAdd = Math.clamp(amount / XP_MULTIPLIER, 0, energySpace);
+                DataAttachments.setSoulEnergy(player, DataAttachments.getSoulEnergy(player) + toAdd);
 
-            double toAdd = Math.clamp(amount/XP_MULTIPLIER, 0, maxSoulEnergy - soulEnergy);
-            DataAttachments.setSoulEnergy(player, DataAttachments.getSoulEnergy(player) + toAdd);
-
-            double leftover = amount - toAdd;
-            amount = (int)Math.round(leftover * XP_MULTIPLIER);
+                double leftover = amount - toAdd;
+                amount = (int) Math.round(leftover * XP_MULTIPLIER);
+            }
         }
 
         return original.call(player, amount);
