@@ -116,7 +116,6 @@ public class ShadowPreviewWidget extends ClickableWidget {
             EntityRenderer<? super Entity, ?> entityRenderer = entityRenderManager.getRenderer(this.entity);
             EntityRenderState entityRenderState = entityRenderer.getAndUpdateRenderState(this.entity, 1.0F);
             entityRenderState.light = 15728880;
-            entityRenderState.hitbox = null;
             entityRenderState.shadowPieces.clear();
             entityRenderState.outlineColor = 0;
             context.addEntity(entityRenderState, this.scale, new Vector3f().add(0, 2.2F * (DEFAULT_SCALE / this.scale), 0), this.rotation, new Quaternionf(), this.getX(), this.getY(), this.getRight(), this.getBottom());

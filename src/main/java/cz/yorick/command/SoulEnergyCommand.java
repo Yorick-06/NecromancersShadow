@@ -8,6 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.DataAttachments;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -23,8 +25,9 @@ public class SoulEnergyCommand {
     public static final String MODIFIED_TRANSLATION_KEY = "command." + NecromancersShadow.MOD_ID + ".soul_energy_modified";
     public static final String GET_ENERGY_TRANSLATION_KEY = "command." + NecromancersShadow.MOD_ID + ".soul_energy_get";
     public static final String GET_MAX_ENERGY_TRANSLATION_KEY = "command." + NecromancersShadow.MOD_ID + ".max_soul_energy_get";
+    private static final Permission LEVEL_2_PERM = new Permission.Level(PermissionLevel.GAMEMASTERS);
     public static void init(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("soulEnergy").requires(source -> source.hasPermissionLevel(2))
+        dispatcher.register(CommandManager.literal("soulEnergy").requires(source -> source.getPermissions().hasPermission(LEVEL_2_PERM))
                 .then(CommandManager.literal("get")
                         .then(CommandManager.argument("player", EntityArgumentType.player())
                                 .then(CommandManager.literal("amount").executes(context -> executeGet(context, Type.AMOUNT)))

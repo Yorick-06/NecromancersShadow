@@ -3,10 +3,12 @@ package cz.yorick;
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import cz.yorick.data.DataAttachments;
-import cz.yorick.mixin.client.RenderLayerMultiPhaseAccessor;
+import cz.yorick.mixin.client.RenderLayerAccessor;
+import cz.yorick.mixin.client.RenderSetupAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.FabricRenderState;
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderSetup;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Util;
@@ -47,13 +49,27 @@ public class ShadowRenderHelper {
 
     //cached factory (the same as minecraft uses in RenderLayer) which converts non-transparent to transparent layers
     private static final Function<RenderLayer, RenderLayer> TRANSPARENT_CONVERTER = Util.memoize(originalLayer -> {
-        if(originalLayer instanceof RenderLayerMultiPhaseAccessor multiPhase) {
-            return RenderLayer.of(originalLayer.getName() + "_translucent_generated", originalLayer.getExpectedBufferSize(), originalLayer.hasCrumbling(), true, new TransparentRenderPipeline(multiPhase.getPipeline()), multiPhase.getPhases());
-        }
-
-        NecromancersShadow.LOGGER.error("Found non-multiphase layer, it will not get rendered as transparent!");
-        return originalLayer;
+        RenderLayerAccessor accessor = (RenderLayerAccessor)originalLayer;
+        return RenderLayer.of(accessor.getName() + "_translucent_generated", copyAsTranslucent(accessor.getRenderSetup()));
     });
+
+    private static RenderSetup copyAsTranslucent(RenderSetup original) {
+        RenderSetupAccessor accessor = (RenderSetupAccessor)(Object)original;
+        return RenderSetupAccessor.invokeConstructor(
+                new TransparentRenderPipeline(accessor.getPipeline()),
+                accessor.getTextures(),
+                accessor.getUseLightmap(),
+                accessor.getUseOverlay(),
+                accessor.getLayeringTransform(),
+                accessor.getOutputTarget(),
+                accessor.getTextureTransform(),
+                accessor.getOutlineMode(),
+                accessor.getHasCrumbling(),
+                //always translucent
+                true,
+                accessor.getExpectedBufferSize()
+        );
+    }
 
     //a simple delegated pipeline which makes the BlendFunction transparent
     private static class TransparentRenderPipeline extends RenderPipeline {
