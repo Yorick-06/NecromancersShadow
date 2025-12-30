@@ -4,8 +4,9 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"BatchingRenderCommandQueueMixin",
-		"RenderLayerMultiPhaseAccessor",
-		"LivingEntityRendererMixin"
+		"RenderSetupAccessor",
+		"LivingEntityRendererMixin",
+        "RenderLayerAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
