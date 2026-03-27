@@ -2,25 +2,25 @@ package cz.yorick.mixin.specific;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.ShadowData;
-import cz.yorick.mixin.MobEntityMixin;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.boss.dragon.phase.PhaseManager;
-import net.minecraft.world.World;
+import cz.yorick.mixin.MobMixin;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.enderdragon.phases.EnderDragonPhaseManager;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(EnderDragonEntity.class)
-public abstract class EnderDragonMixin extends MobEntityMixin {
-    protected EnderDragonMixin(EntityType<? extends LivingEntity> entityType, World world) {
+@Mixin(EnderDragon.class)
+public abstract class EnderDragonMixin extends MobMixin {
+    protected EnderDragonMixin(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
     }
 
     @Shadow
     @Final
-    private PhaseManager phaseManager;
+    private EnderDragonPhaseManager phaseManager;
 
     @Override
     public void necromancers_shadow$setShadow(ShadowData.Instance shadowInstance) {

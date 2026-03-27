@@ -8,17 +8,19 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ConsumableComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.conversion.EntityConversionContext;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.item.*;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ConversionParams;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.Consumable;
 
 public class EventHandlers {
     public static void init() {
@@ -27,7 +29,7 @@ public class EventHandlers {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> DataAttachments.getShadowManager(handler.player).despawnShadows());
         ServerLivingEntityEvents.MOB_CONVERSION.register(EventHandlers::onConversion);
         DefaultItemComponentEvents.MODIFY.register(context -> context.modify(item -> item == Items.ECHO_SHARD, EventHandlers::modifyEchoShardComponents));
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(entries -> {
             entries.addAfter(Items.TOTEM_OF_UNDYING, NecromancersShadow.SCULK_TOTEM);
             entries.addAfter(NecromancersShadow.SCULK_TOTEM, NecromancersShadow.SCULK_EMERALD);
         });
@@ -35,19 +37,19 @@ public class EventHandlers {
 
     private static void onEntityDeath(LivingEntity killed, DamageSource source) {
         //clear spawned shadows after player death
-        if(killed instanceof ServerPlayerEntity player) {
+        if(killed instanceof ServerPlayer player) {
             DataAttachments.getShadowManager(player).despawnShadows();
             return;
         }
 
         //spawn souls on entity death
-        if(killed instanceof MobEntity mobEntity && source.getAttacker() instanceof ServerPlayerEntity player && Util.isHoldingTotem(player) && !Util.isShadow(killed)) {
-            ServerWorld world = player.getEntityWorld();
-            NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE.spawn(world, soulEntity -> soulEntity.setShadow(ShadowData.fromEntity(mobEntity)), killed.getBlockPos(), SpawnReason.TRIGGERED, false, false);
+        if(killed instanceof Mob mobEntity && source.getEntity() instanceof ServerPlayer player && Util.isHoldingTotem(player) && !Util.isShadow(killed)) {
+            ServerLevel world = player.level();
+            NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE.spawn(world, soulEntity -> soulEntity.setShadow(ShadowData.fromEntity(mobEntity)), killed.blockPosition(), EntitySpawnReason.TRIGGERED, false, false);
         }
     }
 
-    private static void onConversion(MobEntity previous, MobEntity converted, EntityConversionContext context) {
+    private static void onConversion(Mob previous, Mob converted, ConversionParams context) {
         ShadowData.Instance shadowInstance = Util.getShadowInstance(previous);
         //not a shadow, do not care
         if(shadowInstance == null) {
@@ -57,7 +59,7 @@ public class EventHandlers {
         DataAttachments.getShadowManager(shadowInstance.owner()).convertShadow(previous, converted);
     }
 
-    private static void modifyEchoShardComponents(ComponentMap.Builder map, Item item) {
-        map.add(DataComponentTypes.CONSUMABLE, ConsumableComponent.builder().consumeEffect(new MaxSoulEnergyGainConsumeEffect(10)).build());
+    private static void modifyEchoShardComponents(DataComponentMap.Builder map, Item item) {
+        map.set(DataComponents.CONSUMABLE, Consumable.builder().onConsume(new MaxSoulEnergyGainConsumeEffect(10)).build());
     }
 }

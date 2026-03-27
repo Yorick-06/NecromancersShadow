@@ -9,17 +9,17 @@ import cz.yorick.screen.widget.ShadowAccessWidget;
 import cz.yorick.screen.widget.SoulSlotWidget;
 import cz.yorick.util.UiId;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.input.KeyInput;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public class SculkEmeraldScreen extends Screen {
     public static String TITLE_TRANSLATION_KEY = "title." + NecromancersShadow.MOD_ID + ".sculk_emerald_inventory";
-    private static final Identifier TEXTURE = Identifier.of(NecromancersShadow.MOD_ID, "textures/gui/sculk_emerald_inventory.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(NecromancersShadow.MOD_ID, "textures/gui/sculk_emerald_inventory.png");
     private static final int backgroundWidth = 176;
     private static final int backgroundHeight = 114 + 6 * 18;
     private static final int titleX = 8;
@@ -31,52 +31,52 @@ public class SculkEmeraldScreen extends Screen {
     private final MutableShadowStorage itemStorage;
     private final ShadowAccessWidget playerStorageWidget;
     private final ShadowAccessWidget itemStorageWidget;
-    private final Text title2;
+    private final Component title2;
     public SculkEmeraldScreen(MutableShadowStorage itemStorage) {
-        super(Text.translatable(TITLE_TRANSLATION_KEY));
-        this.playerStorage = DataAttachments.getShadowStorage(MinecraftClient.getInstance().player).toMutable();
+        super(Component.translatable(TITLE_TRANSLATION_KEY));
+        this.playerStorage = DataAttachments.getShadowStorage(Minecraft.getInstance().player).toMutable();
         this.itemStorage = itemStorage;
-        this.playerStorageWidget = new ShadowAccessWidget(this.playerStorage, (click, soulSlotWidget) -> onClicked(soulSlotWidget, UiId.Ui.PLAYER, click.hasShift()));
-        this.itemStorageWidget = new ShadowAccessWidget(this.itemStorage, (click, soulSlotWidget) -> onClicked(soulSlotWidget, UiId.Ui.ITEM, click.hasShift()));
-        this.title2 = Text.translatable(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY);
+        this.playerStorageWidget = new ShadowAccessWidget(this.playerStorage, (click, soulSlotWidget) -> onClicked(soulSlotWidget, UiId.Ui.PLAYER, click.hasShiftDown()));
+        this.itemStorageWidget = new ShadowAccessWidget(this.itemStorage, (click, soulSlotWidget) -> onClicked(soulSlotWidget, UiId.Ui.ITEM, click.hasShiftDown()));
+        this.title2 = Component.translatable(SculkTotemItem.NECROMANCER_INVENTORY_TRANSLATION_KEY);
     }
 
     @Override
     protected void init() {
         this.x = (this.width - backgroundWidth)/2;
         this.y = (this.height - backgroundHeight)/2;
-        this.itemStorageWidget.position(backgroundWidth - 14 - 18, 5 * 18, this.x + 7, this.y + 18);
-        this.addDrawableChild(this.itemStorageWidget);
-        this.playerStorageWidget.position(backgroundWidth - 14 - 18, 5 * 18, this.x + 7, this.y + 18 + 5 * 18 + 18);
-        this.addDrawableChild(this.playerStorageWidget);
+        this.itemStorageWidget.updateSizeAndPosition(backgroundWidth - 14 - 18, 5 * 18, this.x + 7, this.y + 18);
+        this.addRenderableWidget(this.itemStorageWidget);
+        this.playerStorageWidget.updateSizeAndPosition(backgroundWidth - 14 - 18, 5 * 18, this.x + 7, this.y + 18 + 5 * 18 + 18);
+        this.addRenderableWidget(this.playerStorageWidget);
     }
 
     @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         super.renderBackground(context, mouseX, mouseY, deltaTicks);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
     }
 
     private UiId pickedUp = null;
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
-        context.drawText(this.textRenderer, this.title, this.x + titleX, this.y + titleY, -12566464, false);
-        context.drawText(this.textRenderer, this.title2, this.x + titleX, this.y + title2Y, -12566464, false);
+        context.drawString(this.font, this.title, this.x + titleX, this.y + titleY, -12566464, false);
+        context.drawString(this.font, this.title2, this.x + titleX, this.y + title2Y, -12566464, false);
 
         if(this.pickedUp != null) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
-            context.drawTooltip(getWidget(this.pickedUp).getMessage(), mouseX, mouseY);
+            context.blit(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
+            context.setTooltipForNextFrame(getWidget(this.pickedUp).getMessage(), mouseX, mouseY);
             return;
         }
 
-        hoveredElement(mouseX, mouseY).ifPresent(hoveredMain -> {
+        getChildAt(mouseX, mouseY).ifPresent(hoveredMain -> {
             if(hoveredMain instanceof ShadowAccessWidget hoveredStorage) {
-                hoveredStorage.hoveredElement(mouseX, mouseY).ifPresent(hoveredEntry -> {
+                hoveredStorage.getChildAt(mouseX, mouseY).ifPresent(hoveredEntry -> {
                     if(hoveredEntry instanceof ShadowAccessWidget.Entry entry) {
-                        entry.hoveredElement(mouseX, mouseY).ifPresent(hoveredElement -> {
+                        entry.getChildAt(mouseX, mouseY).ifPresent(hoveredElement -> {
                             if(hoveredElement instanceof SoulSlotWidget dataWidget && dataWidget.getShadowData() != null) {
-                                context.drawTooltip(dataWidget.getMessage(), mouseX, mouseY);
+                                context.setTooltipForNextFrame(dataWidget.getMessage(), mouseX, mouseY);
                             }
                         });
                     }
@@ -86,16 +86,16 @@ public class SculkEmeraldScreen extends Screen {
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
     @Override
-    public boolean keyPressed(KeyInput input) {
+    public boolean keyPressed(KeyEvent input) {
         if (super.keyPressed(input)) {
             return true;
-        } else if (this.client.options.inventoryKey.matchesKey(input)) {
-            this.close();
+        } else if (this.minecraft.options.keyInventory.matches(input)) {
+            this.onClose();
             return true;
         }
 
@@ -164,7 +164,7 @@ public class SculkEmeraldScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        return hoveredElement(mouseX, mouseY)
+        return getChildAt(mouseX, mouseY)
                 .map(element -> element.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount))
                 .orElseGet(() -> super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount));
     }

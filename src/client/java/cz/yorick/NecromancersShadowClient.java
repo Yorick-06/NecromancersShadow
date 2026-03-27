@@ -1,5 +1,6 @@
 package cz.yorick;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.item.SculkTotemItem;
@@ -8,13 +9,12 @@ import cz.yorick.screen.NecromancerInventoryScreen;
 import cz.yorick.screen.SculkEmeraldScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.render.entity.EntityRendererFactories;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,27 +24,27 @@ import java.util.function.Consumer;
 public class NecromancersShadowClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-        EntityRendererFactories.register(NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE, SoulEntityRenderer::new);
-		HandledScreens.register(NecromancersShadow.PLAYER_SHADOW_INVENTORY_SCREEN_HANDLER_TYPE, NecromancerInventoryScreen::new);
+        EntityRenderers.register(NecromancersShadow.SOUL_ENTITY_ENTITY_TYPE, SoulEntityRenderer::new);
+		MenuScreens.register(NecromancersShadow.PLAYER_SHADOW_INVENTORY_SCREEN_HANDLER_TYPE, NecromancerInventoryScreen::new);
 
-        NecromancersShadow.LOCAL_PLAYER = () -> Optional.ofNullable(MinecraftClient.getInstance().player);
+        NecromancersShadow.LOCAL_PLAYER = () -> Optional.ofNullable(Minecraft.getInstance().player);
         NecromancersShadow.SCULK_TOTEM_TOOLTIP_APPENDER = (context, textConsumer, type, components) -> {
             DataAttachments.appendEnergyTooltip(context, textConsumer, type, components);
-            if(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow(), InputUtil.GLFW_KEY_LEFT_SHIFT)) {
+            if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_LSHIFT)) {
                 decodeMultiline(SculkTotemItem.HELP_CONTENT_TRANSLATION_KEY, textConsumer);
             } else {
-                textConsumer.accept(Text.translatable(SculkTotemItem.HELP_TRANSLATION_KEY));
+                textConsumer.accept(Component.translatable(SculkTotemItem.HELP_TRANSLATION_KEY));
             }
         };
 
         NecromancersShadow.NECROMANCER_INVENTORY_OPENER = slot -> ClientPlayNetworking.send(new RequestNecromancerInventoryC2SPacket(slot));
         NecromancersShadow.SCULK_EMERALD_INVENTORY_OPENER = () -> {
             //can only be opened using main hand
-            ImmutableShadowStorage heldItemStorage = MinecraftClient.getInstance().player.getStackInHand(Hand.MAIN_HAND).get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
+            ImmutableShadowStorage heldItemStorage = Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND.MAIN_HAND).get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
             if(heldItemStorage == null) {
                 return;
             }
-            MinecraftClient.getInstance().setScreen(new SculkEmeraldScreen(heldItemStorage.toMutable()));
+            Minecraft.getInstance().setScreen(new SculkEmeraldScreen(heldItemStorage.toMutable()));
         };
 	}
 
@@ -54,9 +54,9 @@ public class NecromancersShadowClient implements ClientModInitializer {
 		}
 	}
 
-	public static void decodeMultiline(String translationKey, Consumer<Text> applier) {
-		for (int i = 0; I18n.hasTranslation(translationKey + "_" + i); i++) {
-			applier.accept(Text.translatable(translationKey + "_" + i));
+	public static void decodeMultiline(String translationKey, Consumer<Component> applier) {
+		for (int i = 0; I18n.exists(translationKey + "_" + i); i++) {
+			applier.accept(Component.translatable(translationKey + "_" + i));
 		}
 	}
 }

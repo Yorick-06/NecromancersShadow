@@ -4,29 +4,31 @@ import cz.yorick.NecromancersShadow;
 import cz.yorick.NecromancersShadowClient;
 import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.render.entity.EntityRenderManager;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.client.sound.SoundManager;
-import net.minecraft.entity.*;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.storage.NbtReadView;
-import net.minecraft.storage.ReadView;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 
-public class ShadowPreviewWidget extends ClickableWidget {
+public class ShadowPreviewWidget extends AbstractWidget {
     public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".preview_help";
     public static final String TYPE_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".type";
     public static final String SUMMON_COST_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".summon_cost";
@@ -42,10 +44,10 @@ public class ShadowPreviewWidget extends ClickableWidget {
     private Entity entity = null;
     private Quaternionf rotation;
     private float scale = 16.0F;
-    private final ArrayList<Text> aboutText = new ArrayList<>();
+    private final ArrayList<Component> aboutText = new ArrayList<>();
     //position gets fixed by the grid widget wrapper layout
     public ShadowPreviewWidget(int width, int height) {
-        super(0, 0, width, height, Text.empty());
+        super(0, 0, width, height, Component.empty());
         clearPreview();
     }
 
@@ -66,7 +68,7 @@ public class ShadowPreviewWidget extends ClickableWidget {
     }
 
     //TODO figure out why the dataTracker data do not get synced
-    public void setPreviewed(int id, ShadowData shadowData, World world) {
+    public void setPreviewed(int id, ShadowData shadowData, Level world) {
         //clearing the entity stops everything from rendering
         this.aboutText.clear();
         if(shadowData == null) {
@@ -78,29 +80,29 @@ public class ShadowPreviewWidget extends ClickableWidget {
 
         this.rotation = new Quaternionf().rotateZ(3.1415927F).rotateY(2.6F);
         this.previewedId = id;
-        this.entity = shadowData.entityType().create(world, SpawnReason.TRIGGERED);
-        ReadView readView = NbtReadView.create(NecromancersShadow.ERROR_REPORTER, MinecraftClient.getInstance().player.getRegistryManager(), shadowData.nbt());
-        this.entity.readData(readView);
+        this.entity = shadowData.entityType().create(world, EntitySpawnReason.TRIGGERED);
+        ValueInput readView = TagValueInput.create(NecromancersShadow.ERROR_REPORTER, Minecraft.getInstance().player.registryAccess(), shadowData.nbt());
+        this.entity.load(readView);
         //attributes are blocked using world.isClient() check, read manually
         if(this.entity instanceof LivingEntity livingEntity) {
-            readView.read("attributes", EntityAttributeInstance.Packed.LIST_CODEC).ifPresent(packedAttributes -> livingEntity.getAttributes().unpack(packedAttributes));
+            readView.read("attributes", AttributeInstance.Packed.LIST_CODEC).ifPresent(packedAttributes -> livingEntity.getAttributes().apply(packedAttributes));
         }
         //render the entity normally
         DataAttachments.markAsShadow(this.entity, false);
 
         //try to autoscale it so it looks decent (leave a bit of space)
-        float widthScale = (this.getWidth() - 10)/this.entity.getWidth();
-        float heightScale = (this.getHeight() - 10)/this.entity.getHeight();
+        float widthScale = (this.getWidth() - 10)/this.entity.getBbWidth();
+        float heightScale = (this.getHeight() - 10)/this.entity.getBbHeight();
         this.scale = Math.min(widthScale, heightScale);
 
         this.aboutText.add(this.entity.getName());
-        this.aboutText.add(Text.literal(""));
-        this.aboutText.add(Text.translatable(TYPE_TRANSLATION_KEY).append(shadowData.typeName()));
-        this.aboutText.add(Text.translatable(SUMMON_COST_TRANSLATION_KEY).append(shadowData.costText()));
+        this.aboutText.add(Component.literal(""));
+        this.aboutText.add(Component.translatable(TYPE_TRANSLATION_KEY).append(shadowData.typeName()));
+        this.aboutText.add(Component.translatable(SUMMON_COST_TRANSLATION_KEY).append(shadowData.costText()));
         if(this.entity instanceof LivingEntity livingEntity) {
-            this.aboutText.add(Text.translatable(HEALTH_TRANSLATION_KEY).append(Text.literal(NecromancersShadow.DECIMAL_FORMAT.format(livingEntity.getMaxHealth())).formatted(Formatting.RED)));
-            if(livingEntity.getAttributeInstance(EntityAttributes.ATTACK_DAMAGE) != null) {
-                this.aboutText.add(Text.translatable(DAMAGE_TRANSLATION_KEY).append(Text.literal(NecromancersShadow.DECIMAL_FORMAT.format(livingEntity.getAttributeValue(EntityAttributes.ATTACK_DAMAGE))).formatted(Formatting.GREEN)));
+            this.aboutText.add(Component.translatable(HEALTH_TRANSLATION_KEY).append(Component.literal(NecromancersShadow.DECIMAL_FORMAT.format(livingEntity.getMaxHealth())).withStyle(ChatFormatting.RED)));
+            if(livingEntity.getAttribute(Attributes.ATTACK_DAMAGE) != null) {
+                this.aboutText.add(Component.translatable(DAMAGE_TRANSLATION_KEY).append(Component.literal(NecromancersShadow.DECIMAL_FORMAT.format(livingEntity.getAttributeValue(Attributes.ATTACK_DAMAGE))).withStyle(ChatFormatting.GREEN)));
             }
         }
     }
@@ -110,19 +112,19 @@ public class ShadowPreviewWidget extends ClickableWidget {
     }
 
     @Override
-    protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         if(this.entity != null) {
-            EntityRenderManager entityRenderManager = MinecraftClient.getInstance().getEntityRenderDispatcher();
+            EntityRenderDispatcher entityRenderManager = Minecraft.getInstance().getEntityRenderDispatcher();
             EntityRenderer<? super Entity, ?> entityRenderer = entityRenderManager.getRenderer(this.entity);
-            EntityRenderState entityRenderState = entityRenderer.getAndUpdateRenderState(this.entity, 1.0F);
-            entityRenderState.light = 15728880;
+            EntityRenderState entityRenderState = entityRenderer.createRenderState(this.entity, 1.0F);
+            entityRenderState.lightCoords = 15728880;
             entityRenderState.shadowPieces.clear();
             entityRenderState.outlineColor = 0;
-            context.addEntity(entityRenderState, this.scale, new Vector3f().add(0, 2.2F * (DEFAULT_SCALE / this.scale), 0), this.rotation, new Quaternionf(), this.getX(), this.getY(), this.getRight(), this.getBottom());
+            context.submitEntityRenderState(entityRenderState, this.scale, new Vector3f().add(0, 2.2F * (DEFAULT_SCALE / this.scale), 0), this.rotation, new Quaternionf(), this.getX(), this.getY(), this.getRight(), this.getBottom());
         }
 
         for (int i = 0; i < this.aboutText.size(); i++) {
-            context.drawText(MinecraftClient.getInstance().textRenderer, this.aboutText.get(i), this.getRight() + 4, this.getY() + 10 + (8 * i), -12566464, false);
+            context.drawString(Minecraft.getInstance().font, this.aboutText.get(i), this.getRight() + 4, this.getY() + 10 + (8 * i), -12566464, false);
         }
     }
 
@@ -132,7 +134,7 @@ public class ShadowPreviewWidget extends ClickableWidget {
     }
 
     @Override
-    protected void onDrag(Click click, double offsetX, double offsetY) {
+    protected void onDrag(MouseButtonEvent click, double offsetX, double offsetY) {
         this.rotation.rotateLocalY((float) (-offsetX * ROTATION_CONSTANT));
     }
 
@@ -147,6 +149,6 @@ public class ShadowPreviewWidget extends ClickableWidget {
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
     }
 }

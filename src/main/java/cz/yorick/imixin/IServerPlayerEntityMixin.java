@@ -1,6 +1,6 @@
 package cz.yorick.imixin;
 
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 
 public interface IServerPlayerEntityMixin {
     LivingEntity necromancers_shadow$getTarget();

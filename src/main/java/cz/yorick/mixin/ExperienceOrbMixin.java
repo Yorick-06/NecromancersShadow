@@ -4,26 +4,27 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import cz.yorick.data.DataAttachments;
 import cz.yorick.util.Util;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ExperienceOrb;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(ExperienceOrbEntity.class)
-public class ExperienceOrbEntityMixin {
+@Mixin(ExperienceOrb.class)
+public class ExperienceOrbMixin {
     @Unique
     private static final double XP_MULTIPLIER = 25D;
 
-    @WrapMethod(method = "repairPlayerGears")
-    private int necromancers_shadow$repairPlayerGears(ServerPlayerEntity player, int amount, Operation<Integer> original) {
+    @WrapMethod(method = "repairPlayerItems")
+    private int necromancers_shadow$repairPlayerItems(ServerPlayer player, int amount, Operation<Integer> original) {
         //if the player is holding a totem in either hand
         if(Util.isHoldingTotem(player)) {
             double energySpace = DataAttachments.getMaxSoulEnergy(player) - DataAttachments.getSoulEnergy(player);
             if(energySpace > 0) {
-                double toAdd = Math.clamp(amount / XP_MULTIPLIER, 0, energySpace);
+                double asEnergy = amount / XP_MULTIPLIER;
+                double toAdd = Math.clamp(asEnergy, 0, energySpace);
                 DataAttachments.setSoulEnergy(player, DataAttachments.getSoulEnergy(player) + toAdd);
 
-                double leftover = amount - toAdd;
+                double leftover = asEnergy - toAdd;
                 amount = (int) Math.round(leftover * XP_MULTIPLIER);
             }
         }

@@ -6,59 +6,59 @@ import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.data.ShadowData;
 import cz.yorick.data.MutableShadowStorage;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandler;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class SoulEntity extends Entity {
-    private static final TrackedDataHandler<ShadowData> ENTITY_TYPE_HANDLER;
-    private static final TrackedData<ShadowData> SHADOW;
+    private static final EntityDataSerializer<ShadowData> ENTITY_TYPE_HANDLER;
+    private static final EntityDataAccessor<ShadowData> SHADOW;
     private static final String SOUL_KEY = "soul";
     static {
-        ENTITY_TYPE_HANDLER = TrackedDataHandler.create(PacketCodecs.registryCodec(ShadowData.SYNC_CODEC));
-        FabricTrackedDataRegistry.register(Identifier.of(NecromancersShadow.MOD_ID, SOUL_KEY), ENTITY_TYPE_HANDLER);
-        SHADOW = DataTracker.registerData(SoulEntity.class, ENTITY_TYPE_HANDLER);
+        ENTITY_TYPE_HANDLER = EntityDataSerializer.forValueType(ByteBufCodecs.fromCodecWithRegistries(ShadowData.SYNC_CODEC));
+        FabricTrackedDataRegistry.register(Identifier.fromNamespaceAndPath(NecromancersShadow.MOD_ID, SOUL_KEY), ENTITY_TYPE_HANDLER);
+        SHADOW = SynchedEntityData.defineId(SoulEntity.class, ENTITY_TYPE_HANDLER);
     }
 
-    public SoulEntity(EntityType<?> type, World world) {
+    public SoulEntity(EntityType<?> type, Level world) {
         super(type, world);
     }
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        builder.add(SHADOW, new ShadowData(EntityType.PIG, 10, new NbtCompound()));
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SHADOW, new ShadowData(EntityType.PIG, 10, new CompoundTag()));
     }
 
     @Override
-    public boolean damage(ServerWorld world, DamageSource source, float amount) {
+    public boolean hurtServer(ServerLevel world, DamageSource source, float amount) {
         return false;
     }
 
     @Override
-    protected Box calculateDefaultBoundingBox(Vec3d pos) {
-        return this.getDimensions(null).getBoxAt(pos);
+    protected AABB makeBoundingBox(Vec3 pos) {
+        return this.getDimensions(null).makeBoundingBox(pos);
     }
 
     @Override
-    public boolean canHit() {
+    public boolean isPickable() {
         return true;
     }
 
@@ -68,45 +68,45 @@ public class SoulEntity extends Entity {
     }
 
     @Override
-    protected void readCustomData(ReadView view) {
-        view.read(SOUL_KEY, ShadowData.CODEC).ifPresent(shadowData -> this.dataTracker.set(SHADOW, shadowData));
-        this.lifespan = view.getInt("lifespan", 2400);
+    protected void readAdditionalSaveData(ValueInput view) {
+        view.read(SOUL_KEY, ShadowData.CODEC).ifPresent(shadowData -> this.entityData.set(SHADOW, shadowData));
+        this.lifespan = view.getIntOr("lifespan", 2400);
     }
 
     @Override
-    protected void writeCustomData(WriteView view) {
-        view.put(SOUL_KEY, ShadowData.CODEC, this.dataTracker.get(SHADOW));
+    protected void addAdditionalSaveData(ValueOutput view) {
+        view.store(SOUL_KEY, ShadowData.CODEC, this.entityData.get(SHADOW));
         view.putInt("lifespan", this.lifespan);
     }
 
     @Override
-    public ActionResult interact(PlayerEntity player, Hand hand) {
-        if(player instanceof ServerPlayerEntity serverPlayerEntity) {
-            ItemStack heldStack = player.getStackInHand(hand);
+    public InteractionResult interact(Player player, InteractionHand hand) {
+        if(player instanceof ServerPlayer serverPlayerEntity) {
+            ItemStack heldStack = player.getItemInHand(hand);
             ImmutableShadowStorage itemStorage = heldStack.get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
             if(itemStorage != null) {
                 MutableShadowStorage mutableStorage = itemStorage.toMutable();
-                mutableStorage.addShadow(this.dataTracker.get(SHADOW));
+                mutableStorage.addShadow(this.entityData.get(SHADOW));
                 heldStack.set(NecromancersShadow.SHADOW_STORAGE_COMPONENT, mutableStorage.toImmutable());
             } else {
-                DataAttachments.mutateShadowStorage(serverPlayerEntity, mutableStorage -> mutableStorage.addShadow(this.dataTracker.get(SHADOW)));
+                DataAttachments.mutateShadowStorage(serverPlayerEntity, mutableStorage -> mutableStorage.addShadow(this.entityData.get(SHADOW)));
             }
 
             this.remove(RemovalReason.KILLED);
-            return ActionResult.SUCCESS_SERVER;
+            return InteractionResult.SUCCESS_SERVER;
         }
 
         //cancels processing, sends packet to server
-        return ActionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
 
     public void setShadow(ShadowData shadow) {
-        this.dataTracker.set(SHADOW, shadow);
+        this.entityData.set(SHADOW, shadow);
     }
 
     public ShadowData getEntityType() {
-        return this.dataTracker.get(SHADOW);
+        return this.entityData.get(SHADOW);
     }
 
     private int lifespan = 2400;
@@ -120,8 +120,8 @@ public class SoulEntity extends Entity {
             }
         }
 
-        if(getEntityWorld() instanceof ServerWorld serverWorld && this.age % 20 == 0) {
-            serverWorld.spawnParticles(ParticleTypes.SCULK_SOUL, this.getX(), this.getY() + 0.5, this.getZ(), 1, 0, 0, 0, 0);
+        if(level() instanceof ServerLevel serverWorld && this.tickCount % 20 == 0) {
+            serverWorld.sendParticles(ParticleTypes.SCULK_SOUL, this.getX(), this.getY() + 0.5, this.getZ(), 1, 0, 0, 0, 0);
         }
     }
 

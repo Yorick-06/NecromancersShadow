@@ -1,12 +1,12 @@
 package cz.yorick;
 
 import cz.yorick.entity.SoulEntity;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 
 public class SoulEntityRenderer extends EntityRenderer<SoulEntity, EntityRenderState> {
-    protected SoulEntityRenderer(EntityRendererFactory.Context context) {
+    protected SoulEntityRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 

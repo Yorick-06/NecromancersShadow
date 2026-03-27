@@ -5,20 +5,22 @@
 	"mixins": [
 		"BrainAccessor",
 		"DamageSourcesMixin",
+        "EnderDragonPhaseInvoker",
 		"EntityMixin",
-		"LivingAndHostileEntityMixin",
+        "ExperienceOrbMixin",
+		"LivingEntityAndMonsterMixin",
 		"LivingEntityMixin",
-		"MobEntityMixin",
-		"ProjectileEntityMixin",
-		"ServerPlayerEntityMixin",
+		"MobMixin",
+		"ProjectileMixin",
+		"ServerPlayerMixin",
 		"StatusEffectUtilMixin",
-		"ExperienceOrbEntityMixin",
-		"specific.WardenEntityMixin",
-		"specific.WitchEntityMixin",
-		"specific.WitherEntityMixin",
-		"specific.EnderDragonMixin",
-		"specific.VexEntityMixin",
-		"specific.EvokerFangsEntityMixin"
+
+        "specific.EnderDragonMixin",
+        "specific.EvokerFangsMixin",
+        "specific.VexMixin",
+		"specific.WardenMixin",
+		"specific.WitchMixin",
+		"specific.WitherBossMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

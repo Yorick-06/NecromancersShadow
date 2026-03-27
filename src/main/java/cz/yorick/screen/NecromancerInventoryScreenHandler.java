@@ -2,29 +2,29 @@ package cz.yorick.screen;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 
-public class NecromancerInventoryScreenHandler extends ScreenHandler {
-    public NecromancerInventoryScreenHandler(int syncId, PlayerInventory playerInventory, ImmutableShadowStorage shadowStorage) {
+public class NecromancerInventoryScreenHandler extends AbstractContainerMenu {
+    public NecromancerInventoryScreenHandler(int syncId, Inventory playerInventory, ImmutableShadowStorage shadowStorage) {
         this(syncId, playerInventory, shadowStorage.toMutable());
     }
 
     private final MutableShadowAccess playerShadows;
-    public NecromancerInventoryScreenHandler(int syncId, PlayerInventory playerInventory, MutableShadowAccess playerShadows) {
+    public NecromancerInventoryScreenHandler(int syncId, Inventory playerInventory, MutableShadowAccess playerShadows) {
         super(NecromancersShadow.PLAYER_SHADOW_INVENTORY_SCREEN_HANDLER_TYPE, syncId);
         this.playerShadows = playerShadows;
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slot) {
+    public ItemStack quickMoveStack(Player player, int slot) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 

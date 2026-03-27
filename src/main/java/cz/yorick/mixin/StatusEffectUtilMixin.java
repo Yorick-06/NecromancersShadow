@@ -1,26 +1,26 @@
 package cz.yorick.mixin;
 
 import cz.yorick.util.Util;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffectUtil;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffectUtil;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(StatusEffectUtil.class)
+@Mixin(MobEffectUtil.class)
 public class StatusEffectUtilMixin {
     //an entity cannot apply a negative effect to its teammate - mixin in LivingEntity is not enough because of the elder
     //guardian (does not check if the effect was applied & sends the screen effect & sound anyway)
-    @Inject(method = "Lnet/minecraft/entity/effect/StatusEffectUtil;method_42145(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/Vec3d;DLnet/minecraft/registry/entry/RegistryEntry;Lnet/minecraft/entity/effect/StatusEffectInstance;ILnet/minecraft/server/network/ServerPlayerEntity;)Z", at = @At("HEAD"), cancellable = true)
-    private static void necromancers_shadow$targetValidationLambda(Entity source, Vec3d position, double range, RegistryEntry<StatusEffect> effectType, StatusEffectInstance effect, int duration, ServerPlayerEntity target, CallbackInfoReturnable<Boolean> cir) {
-        if(effectType.value().getCategory() == StatusEffectCategory.HARMFUL && !Util.canHurt(source, target)) {
+    @Inject(method = "method_42145(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/core/Holder;Lnet/minecraft/world/effect/MobEffectInstance;ILnet/minecraft/server/level/ServerPlayer;)Z", at = @At("HEAD"), cancellable = true)
+    private static void necromancers_shadow$targetValidationLambda(Entity source, Vec3 position, double range, Holder<MobEffect> effectType, MobEffectInstance effect, int duration, ServerPlayer target, CallbackInfoReturnable<Boolean> cir) {
+        if(effectType.value().getCategory() == MobEffectCategory.HARMFUL && !Util.canHurt(source, target)) {
             cir.setReturnValue(false);
         }
     }

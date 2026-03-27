@@ -3,10 +3,10 @@
 	"package": "cz.yorick.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"BatchingRenderCommandQueueMixin",
-		"RenderSetupAccessor",
-		"LivingEntityRendererMixin",
-        "RenderLayerAccessor"
+      "LivingEntityRendererMixin",
+      "RenderSetupAccessor",
+      "RenderTypeAccessor",
+      "SubmitNodeCollectionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

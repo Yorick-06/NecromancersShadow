@@ -8,17 +8,17 @@ import cz.yorick.data.MutableShadowStorage;
 import cz.yorick.util.UiId;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.InventoryMenu;
 
-public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements CustomPayload {
-    private static final CustomPayload.Id<SculkEmeraldInventorySwapC2SPacket> ID = new CustomPayload.Id<>(Identifier.of(NecromancersShadow.MOD_ID, "sculk_emerald_inventory_swap"));
-    private static final PacketCodec<RegistryByteBuf, SculkEmeraldInventorySwapC2SPacket> CODEC = PacketCodecs.registryCodec(
+public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements CustomPacketPayload {
+    private static final CustomPacketPayload.Type<SculkEmeraldInventorySwapC2SPacket> ID = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(NecromancersShadow.MOD_ID, "sculk_emerald_inventory_swap"));
+    private static final StreamCodec<RegistryFriendlyByteBuf, SculkEmeraldInventorySwapC2SPacket> CODEC = ByteBufCodecs.fromCodecWithRegistries(
             RecordCodecBuilder.create(instance -> instance.group(
                     UiId.CODEC.fieldOf("from").forGetter(SculkEmeraldInventorySwapC2SPacket::from),
                     UiId.CODEC.fieldOf("to").forGetter(SculkEmeraldInventorySwapC2SPacket::to)
@@ -26,7 +26,7 @@ public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements 
     );
 
     @Override
-    public CustomPayload.Id<SculkEmeraldInventorySwapC2SPacket> getId() {
+    public CustomPacketPayload.Type<SculkEmeraldInventorySwapC2SPacket> type() {
         return ID;
     }
 
@@ -34,8 +34,8 @@ public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements 
         PayloadTypeRegistry.playC2S().register(ID, CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ID, (payload, context) -> {
             //PlayerScreenHandler is active when other handled screens are closed
-            if(context.player().currentScreenHandler instanceof PlayerScreenHandler) {
-                ImmutableShadowStorage itemStorage = context.player().getStackInHand(Hand.MAIN_HAND).get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
+            if(context.player().containerMenu instanceof InventoryMenu) {
+                ImmutableShadowStorage itemStorage = context.player().getItemInHand(InteractionHand.MAIN_HAND).get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);
                 if(itemStorage == null) {
                     return;
                 }
@@ -46,7 +46,7 @@ public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements 
 
                 //only update the item if one of the swap targets was the item
                 if(payload.from().ui() == UiId.Ui.ITEM || payload.to().ui() == UiId.Ui.ITEM) {
-                    context.player().getStackInHand(Hand.MAIN_HAND).set(NecromancersShadow.SHADOW_STORAGE_COMPONENT, mutableItemStorage.toImmutable());
+                    context.player().getItemInHand(InteractionHand.MAIN_HAND).set(NecromancersShadow.SHADOW_STORAGE_COMPONENT, mutableItemStorage.toImmutable());
                 }
             }
         });

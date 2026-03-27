@@ -2,42 +2,42 @@ package cz.yorick.util;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.ShadowData;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.boss.dragon.phase.AbstractPhase;
-import net.minecraft.entity.boss.dragon.phase.Phase;
-import net.minecraft.entity.boss.dragon.phase.PhaseType;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.enderdragon.phases.AbstractDragonPhaseInstance;
+import net.minecraft.world.entity.boss.enderdragon.phases.DragonPhaseInstance;
+import net.minecraft.world.entity.boss.enderdragon.phases.EnderDragonPhase;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
-public class ShadowDragonPhase extends AbstractPhase {
-    public ShadowDragonPhase(EnderDragonEntity dragon) {
+public class ShadowDragonPhase extends AbstractDragonPhaseInstance {
+    public ShadowDragonPhase(EnderDragon dragon) {
         super(dragon);
     }
 
     @Nullable
     @Override
-    public Vec3d getPathTarget() {
+    public Vec3 getFlyTargetLocation() {
         LivingEntity target = this.dragon.getTarget();
         if(target != null && target.isAlive()) {
-            return target.getEntityPos();
+            return target.position();
         }
 
         ShadowData.Instance shadowInstance = Util.getShadowInstance(this.dragon);
         if(shadowInstance != null) {
-            return shadowInstance.owner().getEntityPos().add(0, 5, 0);
+            return shadowInstance.owner().position().add(0, 5, 0);
         }
 
         return null;
     }
 
     @Override
-    public PhaseType<? extends Phase> getType() {
+    public EnderDragonPhase<? extends DragonPhaseInstance> getPhase() {
         return NecromancersShadow.SHADOW_DRAGON_PHASE;
     }
 
     @Override
-    public float getMaxYAcceleration() {
+    public float getFlySpeed() {
         return 10;
     }
 }

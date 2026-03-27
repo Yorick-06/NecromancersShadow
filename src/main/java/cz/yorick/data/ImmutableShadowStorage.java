@@ -5,24 +5,24 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import cz.yorick.NecromancersShadow;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import net.minecraft.component.ComponentsAccess;
-import net.minecraft.item.Item;
-import net.minecraft.item.tooltip.TooltipAppender;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.dynamic.Codecs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipProvider;
 
 //used for serialization, both systems for item components and data attachments are made for immutable data
-public class ImmutableShadowStorage implements TooltipAppender, Iterable<Map.Entry<Integer, ShadowData>>, ShadowAccess {
+public class ImmutableShadowStorage implements TooltipProvider, Iterable<Map.Entry<Integer, ShadowData>>, ShadowAccess {
     public static final String STORED_SHADOWS_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".stored_shadows";
     //map keys cannot be ints, store the int key as a string
-    private static final Codec<Integer> STRINGIFIED_INT_CODEC = Codecs.NON_EMPTY_STRING.comapFlatMap(string -> {
+    private static final Codec<Integer> STRINGIFIED_INT_CODEC = ExtraCodecs.NON_EMPTY_STRING.comapFlatMap(string -> {
         try {
             return DataResult.success(Integer.parseInt(string));
         } catch (NumberFormatException e) {
@@ -51,8 +51,8 @@ public class ImmutableShadowStorage implements TooltipAppender, Iterable<Map.Ent
     }
 
     @Override
-    public void appendTooltip(Item.TooltipContext context, Consumer<Text> textConsumer, TooltipType type, ComponentsAccess components) {
-        textConsumer.accept(Text.translatable(STORED_SHADOWS_TRANSLATION_KEY).formatted(Formatting.GRAY));
+    public void addToTooltip(Item.TooltipContext context, Consumer<Component> textConsumer, TooltipFlag type, DataComponentGetter components) {
+        textConsumer.accept(Component.translatable(STORED_SHADOWS_TRANSLATION_KEY).withStyle(ChatFormatting.GRAY));
         this.shadows.forEach((slot, shadow) -> textConsumer.accept(shadow.asText()));
     }
 

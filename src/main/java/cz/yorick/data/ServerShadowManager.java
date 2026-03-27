@@ -2,20 +2,19 @@ package cz.yorick.data;
 
 import cz.yorick.NecromancersShadow;
 import it.unimi.dsi.fastutil.ints.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.Map;
 import java.util.function.Consumer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.Mob;
 
 public class ServerShadowManager implements MutableShadowAccess {
-    private final ServerPlayerEntity owner;
-    private final Int2ObjectMap<MobEntity> spawned = new Int2ObjectArrayMap<>();
+    private final ServerPlayer owner;
+    private final Int2ObjectMap<Mob> spawned = new Int2ObjectArrayMap<>();
 
-    public ServerShadowManager(ServerPlayerEntity owner) {
+    public ServerShadowManager(ServerPlayer owner) {
         this.owner = owner;
     }
 
@@ -57,13 +56,13 @@ public class ServerShadowManager implements MutableShadowAccess {
             DataAttachments.removeSoulEnergy(this.owner, shadow.cost());
         }
 
-        BlockPos spawnPos = this.owner.getBlockPos().add(-2 + this.owner.getRandom().nextInt(5), 1, -2 + this.owner.getRandom().nextInt(5));
-        shadow.entityType().spawn(this.owner.getEntityWorld(), spawned -> {
-            if(spawned instanceof MobEntity mobEntity) {
+        BlockPos spawnPos = this.owner.blockPosition().offset(-2 + this.owner.getRandom().nextInt(5), 1, -2 + this.owner.getRandom().nextInt(5));
+        shadow.entityType().spawn(this.owner.level(), spawned -> {
+            if(spawned instanceof Mob mobEntity) {
                 shadow.applyTo(mobEntity, this.owner);
                 this.spawned.put(slot, mobEntity);
             }
-        }, spawnPos, SpawnReason.TRIGGERED, false, false);
+        }, spawnPos, EntitySpawnReason.TRIGGERED, false, false);
         return true;
     }
 
@@ -81,7 +80,7 @@ public class ServerShadowManager implements MutableShadowAccess {
     }
 
     private void tryDespawnShadow(MutableShadowStorage mutableStorage, int slot) {
-        MobEntity spawnedEntity = this.spawned.get(slot);
+        Mob spawnedEntity = this.spawned.get(slot);
         //not spawned -> do nothing
         if(spawnedEntity == null) {
             return;
@@ -104,7 +103,7 @@ public class ServerShadowManager implements MutableShadowAccess {
         DataAttachments.mutateShadowStorage(this.owner, mutator);
     }
 
-    public void convertShadow(MobEntity oldEntity, MobEntity newEntity) {
+    public void convertShadow(Mob oldEntity, Mob newEntity) {
         int slot = findSlot(oldEntity);
         if(slot <= -1) {
             NecromancersShadow.LOGGER.warn("findSlot returned -1 when called from convertShadow, should never happen");
@@ -114,9 +113,9 @@ public class ServerShadowManager implements MutableShadowAccess {
         this.spawned.put(slot, newEntity);
     }
 
-    private int findSlot(MobEntity entity) {
+    private int findSlot(Mob entity) {
         //maybe a better way to do this?
-        for (Int2ObjectMap.Entry<MobEntity> mobEntityEntry : this.spawned.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<Mob> mobEntityEntry : this.spawned.int2ObjectEntrySet()) {
             if(mobEntityEntry.getValue() == entity) {
                 return mobEntityEntry.getIntKey();
             }
@@ -137,8 +136,8 @@ public class ServerShadowManager implements MutableShadowAccess {
         });
 
         //swap references for the spawned entities - handle nulls manually
-        MobEntity fromEntity = this.spawned.remove(from);
-        MobEntity toEntity = this.spawned.remove(to);
+        Mob fromEntity = this.spawned.remove(from);
+        Mob toEntity = this.spawned.remove(to);
         if(fromEntity != null) {
             this.spawned.put(to, fromEntity);
         }
@@ -190,7 +189,7 @@ public class ServerShadowManager implements MutableShadowAccess {
         trySpawnShadow(slot, shadow);
     }
 
-    public static boolean toggleShadows(ServerPlayerEntity player) {
+    public static boolean toggleShadows(ServerPlayer player) {
         return DataAttachments.getShadowManager(player).toggleShadowsInternal();
     }
 }

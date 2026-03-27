@@ -16,14 +16,16 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.client.data.*;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.data.recipe.ShapelessRecipeJsonBuilder;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.world.item.Items;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,10 +38,10 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 		pack.addProvider(this::genRecipes);
 	}
 
-	private FabricLanguageProvider genLang(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryFuture) {
+	private FabricLanguageProvider genLang(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
 		return new FabricLanguageProvider(output, registryFuture) {
 			@Override
-			public void generateTranslations(RegistryWrapper.WrapperLookup registryLookup, TranslationBuilder translationBuilder) {
+			public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
 
                 //commands
 				translationBuilder.add(SoulEnergyCommand.MODIFIED_TRANSLATION_KEY, "Modified the data of %d players");
@@ -105,35 +107,35 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 	private FabricModelProvider genModels(FabricDataOutput output) {
 		return new FabricModelProvider(output) {
 			@Override
-			public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
+			public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
 			}
 
 			@Override
-			public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-				itemModelGenerator.register(NecromancersShadow.SCULK_TOTEM, Models.GENERATED);
-				itemModelGenerator.register(NecromancersShadow.SCULK_EMERALD, Models.GENERATED);
+			public void generateItemModels(ItemModelGenerators itemModelGenerator) {
+				itemModelGenerator.generateFlatItem(NecromancersShadow.SCULK_TOTEM, ModelTemplates.FLAT_ITEM);
+				itemModelGenerator.generateFlatItem(NecromancersShadow.SCULK_EMERALD, ModelTemplates.FLAT_ITEM);
 			}
 		};
 	}
 
-	private FabricRecipeProvider genRecipes(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryFuture) {
+	private FabricRecipeProvider genRecipes(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
 		return new FabricRecipeProvider(output, registryFuture) {
 			@Override
-			protected RecipeGenerator getRecipeGenerator(RegistryWrapper.WrapperLookup registryLookup, RecipeExporter exporter) {
-				return new RecipeGenerator(registryLookup, exporter) {
+			protected RecipeProvider createRecipeProvider(HolderLookup.Provider registryLookup, RecipeOutput exporter) {
+				return new RecipeProvider(registryLookup, exporter) {
 					@Override
-					public void generate() {
-						ShapelessRecipeJsonBuilder.create(registryLookup.getOrThrow(RegistryKeys.ITEM), RecipeCategory.COMBAT, NecromancersShadow.SCULK_TOTEM)
-								.input(Items.TOTEM_OF_UNDYING)
-								.input(Items.ECHO_SHARD)
-								.criterion(hasItem(Items.TOTEM_OF_UNDYING), conditionsFromItem(Items.TOTEM_OF_UNDYING))
-								.offerTo(this.exporter);
+					public void buildRecipes() {
+						ShapelessRecipeBuilder.shapeless(registryLookup.lookupOrThrow(Registries.ITEM), RecipeCategory.COMBAT, NecromancersShadow.SCULK_TOTEM)
+                                .requires(Items.TOTEM_OF_UNDYING)
+								.requires(Items.ECHO_SHARD)
+                                .unlockedBy(getHasName(Items.TOTEM_OF_UNDYING), has(Items.TOTEM_OF_UNDYING))
+                                .save(this.output);
 
-						ShapelessRecipeJsonBuilder.create(registryLookup.getOrThrow(RegistryKeys.ITEM), RecipeCategory.MISC, NecromancersShadow.SCULK_EMERALD)
-								.input(Items.EMERALD)
-								.input(Items.ECHO_SHARD)
-								.criterion(hasItem(Items.ECHO_SHARD), conditionsFromItem(Items.ECHO_SHARD))
-								.offerTo(this.exporter, "sculk_emerald");
+						ShapelessRecipeBuilder.shapeless(registryLookup.lookupOrThrow(Registries.ITEM), RecipeCategory.MISC, NecromancersShadow.SCULK_EMERALD)
+								.requires(Items.EMERALD)
+								.requires(Items.ECHO_SHARD)
+								.unlockedBy(getHasName(Items.ECHO_SHARD), has(Items.ECHO_SHARD))
+								.save(this.output);
 					}
 				};
 			}
