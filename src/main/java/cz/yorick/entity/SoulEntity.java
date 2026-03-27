@@ -5,7 +5,7 @@ import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.data.ShadowData;
 import cz.yorick.data.MutableShadowStorage;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricTrackedDataRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityDataRegistry;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -34,7 +34,7 @@ public class SoulEntity extends Entity {
     private static final String SOUL_KEY = "soul";
     static {
         ENTITY_TYPE_HANDLER = EntityDataSerializer.forValueType(ByteBufCodecs.fromCodecWithRegistries(ShadowData.SYNC_CODEC));
-        FabricTrackedDataRegistry.register(Identifier.fromNamespaceAndPath(NecromancersShadow.MOD_ID, SOUL_KEY), ENTITY_TYPE_HANDLER);
+        FabricEntityDataRegistry.register(Identifier.fromNamespaceAndPath(NecromancersShadow.MOD_ID, SOUL_KEY), ENTITY_TYPE_HANDLER);
         SHADOW = SynchedEntityData.defineId(SoulEntity.class, ENTITY_TYPE_HANDLER);
     }
 
@@ -79,8 +79,9 @@ public class SoulEntity extends Entity {
         view.putInt("lifespan", this.lifespan);
     }
 
+
     @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
+    public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
         if(player instanceof ServerPlayer serverPlayerEntity) {
             ItemStack heldStack = player.getItemInHand(hand);
             ImmutableShadowStorage itemStorage = heldStack.get(NecromancersShadow.SHADOW_STORAGE_COMPONENT);

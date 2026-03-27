@@ -23,7 +23,7 @@ public record RequestNecromancerInventoryC2SPacket(int clickedSlot) implements C
     }
 
     public static void init() {
-        PayloadTypeRegistry.playC2S().register(ID, CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ID, CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ID, (payload, context) -> {
             ServerPlayer player = context.player();
             SculkTotemItem totemItem = getTotem(context.player(), payload.clickedSlot());

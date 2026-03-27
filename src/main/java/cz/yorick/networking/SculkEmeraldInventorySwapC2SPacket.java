@@ -31,7 +31,7 @@ public record SculkEmeraldInventorySwapC2SPacket(UiId from, UiId to) implements 
     }
 
     public static void init() {
-        PayloadTypeRegistry.playC2S().register(ID, CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ID, CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ID, (payload, context) -> {
             //PlayerScreenHandler is active when other handled screens are closed
             if(context.player().containerMenu instanceof InventoryMenu) {

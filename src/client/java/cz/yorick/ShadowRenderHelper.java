@@ -1,19 +1,20 @@
 package cz.yorick;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import cz.yorick.data.DataAttachments;
 import cz.yorick.mixin.client.RenderTypeAccessor;
 import cz.yorick.mixin.client.RenderSetupAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.FabricRenderState;
 import net.fabricmc.fabric.api.client.rendering.v1.RenderStateDataKey;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Util;
-import net.minecraft.world.entity.LivingEntity;
-import java.util.Optional;
+import net.minecraft.world.entity.Entity;
+
 import java.util.function.Function;
 
 public class ShadowRenderHelper {
@@ -40,7 +41,7 @@ public class ShadowRenderHelper {
         return TRANSPARENT_CONVERTER.apply(original);
     }
 
-    public static void updateRenderState(LivingEntity entity, LivingEntityRenderState state) {
+    public static void updateRenderState(Entity entity, EntityRenderState state) {
         if(DataAttachments.isMarkedAsShadow(entity)) {
             state.setData(IS_SHADOW_RENDER_STATE_DATA, true);
         }
@@ -72,7 +73,7 @@ public class ShadowRenderHelper {
 
     //a simple delegated pipeline which makes the BlendFunction transparent
     private static class TransparentRenderPipeline extends RenderPipeline {
-
+        private static final ColorTargetState COLOR_TARGET_STATE = new ColorTargetState(BlendFunction.TRANSLUCENT);
         protected TransparentRenderPipeline(RenderPipeline delegate) {
             super(
                     delegate.getLocation(),
@@ -81,18 +82,12 @@ public class ShadowRenderHelper {
                     delegate.getShaderDefines(),
                     delegate.getSamplers(),
                     delegate.getUniforms(),
-                    Optional.of(BlendFunction.TRANSLUCENT),
-                    delegate.getDepthTestFunction(),
+                    COLOR_TARGET_STATE,
+                    delegate.getDepthStencilState(),
                     delegate.getPolygonMode(),
                     delegate.isCull(),
-                    delegate.isWriteColor(),
-                    delegate.isWriteAlpha(),
-                    delegate.isWriteDepth(),
-                    delegate.getColorLogic(),
                     delegate.getVertexFormat(),
                     delegate.getVertexFormatMode(),
-                    delegate.getDepthBiasScaleFactor(),
-                    delegate.getDepthBiasConstant(),
                     delegate.getSortKey()
             );
         }

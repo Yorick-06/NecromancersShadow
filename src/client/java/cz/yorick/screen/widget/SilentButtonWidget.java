@@ -1,6 +1,6 @@
 package cz.yorick.screen.widget;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -24,9 +24,9 @@ public class SilentButtonWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         if(isHovered()) {
-            context.fill(getX() + 1, getY() + 1, getX() + 17, getY() + 17, -2130706433);
+            graphics.fill(getX() + 1, getY() + 1, getX() + 17, getY() + 17, -2130706433);
         }
     }
 

@@ -6,7 +6,7 @@ import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -112,7 +112,7 @@ public class ShadowPreviewWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float deltaTicks) {
         if(this.entity != null) {
             EntityRenderDispatcher entityRenderManager = Minecraft.getInstance().getEntityRenderDispatcher();
             EntityRenderer<? super Entity, ?> entityRenderer = entityRenderManager.getRenderer(this.entity);
@@ -120,11 +120,11 @@ public class ShadowPreviewWidget extends AbstractWidget {
             entityRenderState.lightCoords = 15728880;
             entityRenderState.shadowPieces.clear();
             entityRenderState.outlineColor = 0;
-            context.submitEntityRenderState(entityRenderState, this.scale, new Vector3f().add(0, 2.2F * (DEFAULT_SCALE / this.scale), 0), this.rotation, new Quaternionf(), this.getX(), this.getY(), this.getRight(), this.getBottom());
+            graphics.entity(entityRenderState, this.scale, new Vector3f().add(0, 2.2F * (DEFAULT_SCALE / this.scale), 0), this.rotation, new Quaternionf(), this.getX(), this.getY(), this.getRight(), this.getBottom());
         }
 
         for (int i = 0; i < this.aboutText.size(); i++) {
-            context.drawString(Minecraft.getInstance().font, this.aboutText.get(i), this.getRight() + 4, this.getY() + 10 + (8 * i), -12566464, false);
+            graphics.text(Minecraft.getInstance().font, this.aboutText.get(i), this.getRight() + 4, this.getY() + 10 + (8 * i), -12566464, false);
         }
     }
 

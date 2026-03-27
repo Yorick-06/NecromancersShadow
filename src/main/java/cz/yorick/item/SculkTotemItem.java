@@ -6,7 +6,7 @@ import cz.yorick.data.ImmutableShadowStorage;
 import cz.yorick.data.ServerShadowManager;
 import cz.yorick.screen.NecromancerInventoryScreenHandler;
 import cz.yorick.imixin.IServerPlayerEntityMixin;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 //TODO add a way to ride the entities?
-public class SculkTotemItem extends Item implements ExtendedScreenHandlerFactory<ImmutableShadowStorage> {
+public class SculkTotemItem extends Item implements ExtendedMenuProvider<ImmutableShadowStorage> {
     public static final String HELP_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".help";
     public static final String HELP_CONTENT_TRANSLATION_KEY = "tooltip." + NecromancersShadow.MOD_ID + ".sculk_totem_help";
     public static final String NECROMANCER_INVENTORY_TRANSLATION_KEY = "title." + NecromancersShadow.MOD_ID + ".necromancer_inventory";

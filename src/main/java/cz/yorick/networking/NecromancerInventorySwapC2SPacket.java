@@ -28,7 +28,7 @@ public record NecromancerInventorySwapC2SPacket(int from, int to) implements Cus
     }
 
     public static void init() {
-        PayloadTypeRegistry.playC2S().register(ID, CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ID, CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ID, (payload, context) -> {
             if(context.player().containerMenu instanceof NecromancerInventoryScreenHandler handler) {
                 handler.onSwapPacket(payload.from(), payload.to());

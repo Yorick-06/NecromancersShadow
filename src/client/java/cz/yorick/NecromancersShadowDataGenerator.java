@@ -12,7 +12,7 @@ import cz.yorick.util.ShadowDamageSource;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.client.data.*;
@@ -38,7 +38,7 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 		pack.addProvider(this::genRecipes);
 	}
 
-	private FabricLanguageProvider genLang(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
+	private FabricLanguageProvider genLang(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
 		return new FabricLanguageProvider(output, registryFuture) {
 			@Override
 			public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
@@ -104,7 +104,7 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 		};
 	}
 
-	private FabricModelProvider genModels(FabricDataOutput output) {
+	private FabricModelProvider genModels(FabricPackOutput output) {
 		return new FabricModelProvider(output) {
 			@Override
 			public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
@@ -118,7 +118,7 @@ public class NecromancersShadowDataGenerator implements DataGeneratorEntrypoint 
 		};
 	}
 
-	private FabricRecipeProvider genRecipes(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
+	private FabricRecipeProvider genRecipes(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryFuture) {
 		return new FabricRecipeProvider(output, registryFuture) {
 			@Override
 			protected RecipeProvider createRecipeProvider(HolderLookup.Provider registryLookup, RecipeOutput exporter) {

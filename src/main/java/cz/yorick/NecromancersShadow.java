@@ -15,8 +15,9 @@ import cz.yorick.util.EventHandlers;
 import cz.yorick.util.ShadowDragonPhase;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.item.v1.ComponentTooltipAppenderRegistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.item.v1.ItemComponentTooltipProviderRegistry;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -62,7 +63,7 @@ public class NecromancersShadow implements ModInitializer {
 	public static final MenuType<NecromancerInventoryScreenHandler> PLAYER_SHADOW_INVENTORY_SCREEN_HANDLER_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
 			NECROMANCER_INVENTORY_REGISTRY_KEY,
-			new ExtendedScreenHandlerType<>(NecromancerInventoryScreenHandler::new, ByteBufCodecs.fromCodecWithRegistries(ImmutableShadowStorage.CODEC))
+			new ExtendedMenuType<>(NecromancerInventoryScreenHandler::new, ByteBufCodecs.fromCodecWithRegistries(ImmutableShadowStorage.CODEC))
 	);
 
     //sync only partially (for text display), rest is synced on ui open
@@ -85,7 +86,7 @@ public class NecromancersShadow implements ModInitializer {
         NecromancerInventorySwapC2SPacket.init();
         SculkEmeraldInventorySwapC2SPacket.init();
         RequestNecromancerInventoryC2SPacket.init();
-        ComponentTooltipAppenderRegistry.addFirst(SHADOW_STORAGE_COMPONENT);
+        ItemComponentTooltipProviderRegistry.addFirst(SHADOW_STORAGE_COMPONENT);
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> SoulEnergyCommand.init(dispatcher));
 	}
 

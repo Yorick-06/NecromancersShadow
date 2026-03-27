@@ -4,7 +4,7 @@ import cz.yorick.NecromancersShadow;
 import cz.yorick.networking.NecromancerInventorySwapC2SPacket;
 import cz.yorick.screen.widget.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -40,24 +40,14 @@ public class NecromancerInventoryScreen extends AbstractContainerScreen<Necroman
         this.addRenderableWidget(this.storageWidget);
     }
 
-    @Override
-    protected void renderBg(GuiGraphics context, float deltaTicks, int mouseX, int mouseY) {
-        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
-    }
-
-    //do not draw the "Inventory" title
-    @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        context.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, -12566464, false);
-    }
-
     private int pickedUp = -1;
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        super.render(context, mouseX, mouseY, deltaTicks);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float deltaTicks) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        super.extractRenderState(graphics, mouseX, mouseY, deltaTicks);
         if(this.pickedUp >= 0) {
-            context.blit(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
-            context.setTooltipForNextFrame(this.storageWidget.getWidgetFor(this.pickedUp).getMessage(), mouseX, mouseY);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
+            graphics.setTooltipForNextFrame(this.storageWidget.getWidgetFor(this.pickedUp).getMessage(), mouseX, mouseY);
             return;
         }
 
@@ -67,15 +57,21 @@ public class NecromancerInventoryScreen extends AbstractContainerScreen<Necroman
                     if(hoveredEntry instanceof ShadowAccessWidget.Entry entry) {
                         entry.getChildAt(mouseX, mouseY).ifPresent(hoveredElement -> {
                             if(hoveredElement instanceof SoulSlotWidget dataWidget && dataWidget.getShadowData() != null) {
-                                context.setTooltipForNextFrame(dataWidget.getMessage(), mouseX, mouseY);
+                                graphics.setTooltipForNextFrame(dataWidget.getMessage(), mouseX, mouseY);
                             }
                         });
                     }
                 });
             } else if(hoveredMain instanceof ToggleSummonWidget toggleWidget && toggleWidget.getMessage() != null) {
-                context.setTooltipForNextFrame(toggleWidget.getMessage(), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(toggleWidget.getMessage(), mouseX, mouseY);
             }
         });
+    }
+
+    //do not draw the "Inventory" title
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor extractor, int mouseX, int mouseY) {
+        extractor.text(this.font, this.title, this.titleLabelX, this.titleLabelY, -12566464, false);
     }
 
     private void onClicked(MouseButtonEvent click, SoulSlotWidget clicked) {

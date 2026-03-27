@@ -1,7 +1,7 @@
 package cz.yorick.screen.widget;
 
 import cz.yorick.NecromancersShadow;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -20,8 +20,8 @@ public class ToggleSummonWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        context.blit(RenderPipelines.GUI_TEXTURED, this.isHovered ? HOVERED_TEXTURE : TEXTURE, this.getX(), this.getY(), 0, 0, 20, 20, 20, 20);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, this.isHovered ? HOVERED_TEXTURE : TEXTURE, this.getX(), this.getY(), 0, 0, 20, 20, 20, 20);
     }
 
     @Override
