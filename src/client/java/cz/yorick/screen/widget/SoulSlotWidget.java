@@ -2,7 +2,7 @@ package cz.yorick.screen.widget;
 
 import cz.yorick.NecromancersShadow;
 import cz.yorick.data.ShadowData;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -39,14 +39,14 @@ public class SoulSlotWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        context.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, this.getX(), this.getY(), 0, 0, 18, 18, 18, 18);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, this.getX(), this.getY(), 0, 0, 18, 18, 18, 18);
         if(this.shadowData != null && !this.pickedUp) {
-            context.blit(RenderPipelines.GUI_TEXTURED, SOUL_TEXTURE, this.getX() + 1, this.getY() + 1, 0, 0, 16, 16, 16, 16);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, SOUL_TEXTURE, this.getX() + 1, this.getY() + 1, 0, 0, 16, 16, 16, 16);
         }
 
         if(isHovered()) {
-            context.fill(getX() + 1, getY() + 1, getX() + 17, getY() + 17, -2130706433);
+            graphics.fill(getX() + 1, getY() + 1, getX() + 17, getY() + 17, -2130706433);
         }
     }
 

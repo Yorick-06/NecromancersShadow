@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class StatusEffectUtilMixin {
     //an entity cannot apply a negative effect to its teammate - mixin in LivingEntity is not enough because of the elder
     //guardian (does not check if the effect was applied & sends the screen effect & sound anyway)
-    @Inject(method = "method_42145(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/core/Holder;Lnet/minecraft/world/effect/MobEffectInstance;ILnet/minecraft/server/level/ServerPlayer;)Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "lambda$addEffectToPlayersAround$0(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;DLnet/minecraft/core/Holder;Lnet/minecraft/world/effect/MobEffectInstance;ILnet/minecraft/server/level/ServerPlayer;)Z", at = @At("HEAD"), cancellable = true)
     private static void necromancers_shadow$targetValidationLambda(Entity source, Vec3 position, double range, Holder<MobEffect> effectType, MobEffectInstance effect, int duration, ServerPlayer target, CallbackInfoReturnable<Boolean> cir) {
         if(effectType.value().getCategory() == MobEffectCategory.HARMFUL && !Util.canHurt(source, target)) {
             cir.setReturnValue(false);

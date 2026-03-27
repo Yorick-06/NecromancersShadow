@@ -4,9 +4,9 @@ import cz.yorick.NecromancersShadow;
 import cz.yorick.data.DataAttachments;
 import cz.yorick.data.ShadowData;
 import cz.yorick.data.MaxSoulEnergyGainConsumeEffect;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
@@ -29,10 +29,7 @@ public class EventHandlers {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> DataAttachments.getShadowManager(handler.player).despawnShadows());
         ServerLivingEntityEvents.MOB_CONVERSION.register(EventHandlers::onConversion);
         DefaultItemComponentEvents.MODIFY.register(context -> context.modify(item -> item == Items.ECHO_SHARD, EventHandlers::modifyEchoShardComponents));
-        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT).register(entries -> {
-            entries.addAfter(Items.TOTEM_OF_UNDYING, NecromancersShadow.SCULK_TOTEM);
-            entries.addAfter(NecromancersShadow.SCULK_TOTEM, NecromancersShadow.SCULK_EMERALD);
-        });
+        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT).register(entries -> entries.insertAfter(Items.TOTEM_OF_UNDYING, NecromancersShadow.SCULK_TOTEM, NecromancersShadow.SCULK_EMERALD));
     }
 
     private static void onEntityDeath(LivingEntity killed, DamageSource source) {

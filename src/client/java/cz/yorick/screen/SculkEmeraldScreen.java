@@ -10,7 +10,7 @@ import cz.yorick.screen.widget.SoulSlotWidget;
 import cz.yorick.util.UiId;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -52,21 +52,21 @@ public class SculkEmeraldScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        super.renderBackground(context, mouseX, mouseY, deltaTicks);
-        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
+    protected void extractMenuBackground(GuiGraphicsExtractor graphics) {
+        super.extractMenuBackground(graphics);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.x, this.y, 0, 0, backgroundWidth, backgroundHeight, 256, 256);
     }
 
     private UiId pickedUp = null;
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
-        super.render(context, mouseX, mouseY, deltaTicks);
-        context.drawString(this.font, this.title, this.x + titleX, this.y + titleY, -12566464, false);
-        context.drawString(this.font, this.title2, this.x + titleX, this.y + title2Y, -12566464, false);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractRenderState(graphics, mouseX, mouseY, a);
+        graphics.text(this.font, this.title, this.x + titleX, this.y + titleY, -12566464, false);
+        graphics.text(this.font, this.title2, this.x + titleX, this.y + title2Y, -12566464, false);
 
         if(this.pickedUp != null) {
-            context.blit(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
-            context.setTooltipForNextFrame(getWidget(this.pickedUp).getMessage(), mouseX, mouseY);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, SoulSlotWidget.SOUL_TEXTURE, mouseX - 8, mouseY - 8, 0, 0, 16, 16, 16, 16);
+            graphics.setTooltipForNextFrame(getWidget(this.pickedUp).getMessage(), mouseX, mouseY);
             return;
         }
 
@@ -76,7 +76,7 @@ public class SculkEmeraldScreen extends Screen {
                     if(hoveredEntry instanceof ShadowAccessWidget.Entry entry) {
                         entry.getChildAt(mouseX, mouseY).ifPresent(hoveredElement -> {
                             if(hoveredElement instanceof SoulSlotWidget dataWidget && dataWidget.getShadowData() != null) {
-                                context.setTooltipForNextFrame(dataWidget.getMessage(), mouseX, mouseY);
+                                graphics.setTooltipForNextFrame(dataWidget.getMessage(), mouseX, mouseY);
                             }
                         });
                     }

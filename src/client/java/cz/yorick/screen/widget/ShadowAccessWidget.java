@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -52,11 +52,6 @@ public class ShadowAccessWidget extends ContainerObjectSelectionList<ShadowAcces
         return ROW_SIZE * 18;
     }
 
-    @Override
-    protected void renderScrollbar(GuiGraphics context, int mouseX, int mouseY) {
-        super.renderScrollbar(context, mouseX, mouseY);
-    }
-
     //-4 removes padding, extra -1 offsets it in combination with the hack in the entry
     @Override
     protected int contentHeight() {
@@ -77,12 +72,11 @@ public class ShadowAccessWidget extends ContainerObjectSelectionList<ShadowAcces
         }
 
         @Override
-        public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
+        public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
             for (AbstractWidget widget : this.slots) {
-                widget.render(context, mouseX, mouseY, deltaTicks);
+                widget.extractRenderState(graphics, mouseX, mouseY, deltaTicks);
             }
         }
-
 
         @Override
         public void setX(int x) {
