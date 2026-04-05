@@ -20,10 +20,11 @@ public class ExperienceOrbEntityMixin {
         if(Util.isHoldingTotem(player)) {
             double energySpace = DataAttachments.getMaxSoulEnergy(player) - DataAttachments.getSoulEnergy(player);
             if(energySpace > 0) {
-                double toAdd = Math.clamp(amount / XP_MULTIPLIER, 0, energySpace);
+                double asEnergy = amount / XP_MULTIPLIER;
+                double toAdd = Math.clamp(asEnergy, 0, energySpace);
                 DataAttachments.setSoulEnergy(player, DataAttachments.getSoulEnergy(player) + toAdd);
 
-                double leftover = amount - toAdd;
+                double leftover = asEnergy - toAdd;
                 amount = (int) Math.round(leftover * XP_MULTIPLIER);
             }
         }
